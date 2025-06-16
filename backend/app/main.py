@@ -1,4 +1,5 @@
 """FastAPI application entry point."""
+
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -12,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.dependencies.telemetry import init_telemetry, instrument_app, shutdown_telemetry
-from app.routes import health_router
+from app.routes import health_router, test_router
 from app.utils.logging import setup_logging
 
 # Setup logging
@@ -27,7 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Starting {settings.SERVICE_NAME} v{settings.VERSION}")
     logger.info(f"Environment: {settings.APP_ENV}")
     logger.info(f"Docs enabled: {settings.ENABLE_DOCS}")
-    
+
     # Initialize telemetry
     try:
         init_telemetry(settings.SERVICE_NAME)
@@ -35,14 +36,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error(f"Failed to initialize OpenTelemetry: {e}")
         # Continue without telemetry in case of failure
-    
+
     # TODO: Initialize other services (database, cache, etc.)
-    
+
     yield
-    
+
     # Shutdown
     logger.info(f"Shutting down {settings.SERVICE_NAME}")
-    
+
     # Shutdown telemetry
     try:
         shutdown_telemetry()
@@ -79,13 +80,12 @@ except Exception as e:
 
 # Include routers
 app.include_router(health_router.router)
-
-# TODO: Include other routers
+app.include_router(test_router.router)
 
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",

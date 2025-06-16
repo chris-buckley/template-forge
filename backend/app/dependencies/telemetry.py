@@ -1,4 +1,5 @@
 """OpenTelemetry instrumentation setup."""
+
 import logging
 from typing import Any, Dict, Optional
 
@@ -23,29 +24,31 @@ tracer: Optional[trace.Tracer] = None
 def init_telemetry(service_name: str) -> None:
     """
     Initialize OpenTelemetry with OTLP exporter.
-    
+
     Args:
         service_name: The name of the service for tracing
     """
     global tracer
-    
+
     # Create resource attributes
-    resource = Resource.create({
-        "service.name": service_name,
-        "service.version": settings.VERSION,
-        "deployment.environment": settings.APP_ENV,
-    })
-    
+    resource = Resource.create(
+        {
+            "service.name": service_name,
+            "service.version": settings.VERSION,
+            "deployment.environment": settings.APP_ENV,
+        }
+    )
+
     # Create tracer provider
     provider = TracerProvider(resource=resource)
-    
+
     # Configure exporters based on environment
     if settings.is_development:
         # In development, use console exporter for debugging
         console_exporter = ConsoleSpanExporter()
         provider.add_span_processor(BatchSpanProcessor(console_exporter))
         logger.info("OpenTelemetry configured with console exporter (development)")
-    
+
     # Add OTLP exporter if endpoint is configured
     if settings.OTEL_EXPORTER_OTLP_ENDPOINT:
         try:
@@ -57,13 +60,13 @@ def init_telemetry(service_name: str) -> None:
             logger.info(f"OpenTelemetry configured with OTLP exporter: {settings.OTEL_EXPORTER_OTLP_ENDPOINT}")
         except Exception as e:
             logger.error(f"Failed to configure OTLP exporter: {e}")
-    
+
     # Set the global tracer provider
     trace.set_tracer_provider(provider)
-    
+
     # Configure W3C trace context propagation
     set_global_textmap(TraceContextTextMapPropagator())
-    
+
     # Get tracer instance
     tracer = trace.get_tracer(__name__, settings.VERSION)
     logger.info(f"OpenTelemetry initialized for service: {service_name}")
@@ -72,10 +75,10 @@ def init_telemetry(service_name: str) -> None:
 def get_tracer() -> trace.Tracer:
     """
     Get the global tracer instance.
-    
+
     Returns:
         The configured tracer instance
-    
+
     Raises:
         RuntimeError: If telemetry has not been initialized
     """
@@ -87,7 +90,7 @@ def get_tracer() -> trace.Tracer:
 def instrument_app(app: Any) -> None:
     """
     Instrument FastAPI application with OpenTelemetry.
-    
+
     Args:
         app: FastAPI application instance
     """
@@ -99,11 +102,11 @@ def instrument_app(app: Any) -> None:
 def create_span(name: str, attributes: Optional[Dict[str, Any]] = None) -> trace.Span:
     """
     Create a new span with optional attributes.
-    
+
     Args:
         name: Span name
         attributes: Optional dictionary of span attributes
-    
+
     Returns:
         The created span
     """
@@ -116,7 +119,7 @@ def create_span(name: str, attributes: Optional[Dict[str, Any]] = None) -> trace
 def set_span_error(span: trace.Span, error: Exception) -> None:
     """
     Set error status on a span.
-    
+
     Args:
         span: The span to set error on
         error: The exception that occurred

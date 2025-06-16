@@ -1,4 +1,5 @@
 """Logging configuration and utilities."""
+
 import logging
 import logging.config
 import sys
@@ -77,9 +78,9 @@ def setup_logging() -> None:
             },
         },
     }
-    
+
     logging.config.dictConfig(log_config)
-    
+
     # Log initial configuration
     logger = logging.getLogger(__name__)
     logger.info(f"Logging configured with level: {settings.LOG_LEVEL}")
@@ -89,10 +90,10 @@ def setup_logging() -> None:
 def get_logger(name: str) -> logging.Logger:
     """
     Get a logger instance with the given name.
-    
+
     Args:
         name: Logger name (typically __name__)
-    
+
     Returns:
         Configured logger instance
     """
@@ -102,10 +103,10 @@ def get_logger(name: str) -> logging.Logger:
 class CorrelationIdFilter(logging.Filter):
     """
     Logging filter to add correlation ID to log records.
-    
+
     This will be used in future when we implement request correlation.
     """
-    
+
     def filter(self, record: logging.LogRecord) -> bool:
         """Add correlation_id to the log record."""
         # TODO: Get correlation ID from context when implemented
