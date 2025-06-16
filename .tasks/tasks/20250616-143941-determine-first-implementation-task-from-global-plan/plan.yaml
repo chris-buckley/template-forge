@@ -1,0 +1,906 @@
+###################################################################################################
+#  UNIVERSAL *SOFTWARE‑CHANGE* PLAN TEMPLATE — v1.0 (2025‑06)                                     #
+# ------------------------------------------------------------------------------------------------#
+#  ⚠️  DO NOT REMOVE THESE COMMENTS — they are the canonical instructions for filling‑out this    #
+#  file.                                                                                          #
+#                                                                                                 #
+#  PURPOSE                                                                                        #
+#  • Capture EVERYTHING needed to analyse, design, implement, test and release a CHANGE to a      #
+#    software system — bug‑fix, feature, refactor, infra tweak, documentation overhaul …          #
+#                                                                                                 #
+#  ITERATIVE COMPLETION GUIDE                                                                     #
+#  • Complete this file INCREMENTALLY as information becomes known.                               #
+#  • Empty check‑boxes [ ] or blank strings ("") mean "not done / unknown yet".                   #
+#  • Mark finished items with [x].                                                                #
+#  • Remove an entire block only if it is truly irrelevant for your change.                       #
+#                                                                                                 #
+#  STRUCTURAL GUIDELINES                                                                          #
+#  • Keep all key names and their nesting.                                                        #
+#  • Use lists ( ‑ item ) even for single entries to keep YAML shape predictable.                 #
+#  • Prefer ISO‑8601 dates (YYYY‑MM‑DD).                                                          #
+###################################################################################################
+
+# ── 0. Change Identification ────────────────────────────────────────────────────────────────
+# [x] Basic change metadata
+id:               "determine-first-implementation-task-from-global-plan"           # kebab‑case identifier, e.g. "fix‑payment‑timeout"
+title:            "Determine First Implementation Task from Global Plan"           # human title, e.g. "Increase payment timeout for Stripe"
+type:             "feature"           # bug‑fix | feature | refactor | infra | docs
+status:           "in-progress"           # draft | in‑progress | ready‑for‑review | scheduled | done
+raised_on:        "2025-06-16"           # YYYY‑MM‑DD – when the change request was created
+target_release:   "poc-phase-1"           # expected release / sprint name or version
+description:      "Analyze project state and determine the first implementation task for the LLM Document Generation PoC based on globalPlan.md requirements"           # ≤ 280 chars high‑level summary
+
+# ── 1. Context & Drivers ────────────────────────────────────────────────────────────────────
+# [x] Why are we doing this?
+context:
+  initiator:          "Project Team"       # person / team who requested the change
+  business_driver:    "POC Development"       # revenue, cost, compliance, UX, …
+  problem_statement:  "The project has been initialized with frontend template but backend FastAPI setup is incomplete. Need to determine optimal first implementation task based on globalPlan.md requirements."       # what hurts today?
+  goals:
+    - "Identify the most critical first implementation task that unblocks subsequent development"                       # measurable goal #1
+    - "Ensure the task aligns with the PoC requirements in globalPlan.md"
+    - "Establish a foundation for the system architecture"
+  success_metrics:
+    - metric:  "Task identification completion"              # "p95 response time"
+      target:  "Clear actionable first task identified"              # "≤ 200 ms"
+    - metric:  "Implementation readiness"
+      target:  "All prerequisites and dependencies identified"
+
+# ── 2. Scope Definition ────────────────────────────────────────────────────────────────────
+# [x] Clarify what is in / out
+scope:
+  in_scope:
+    - "Analysis of current repository state"                       # e.g. "payment‑service"
+    - "Review of globalPlan.md requirements"
+    - "Identification of first implementation task"
+    - "Gap analysis between current state and requirements"
+  out_of_scope:
+    - "Actual implementation of identified task"                       # e.g. "pricing‑engine"
+    - "Azure infrastructure provisioning"
+    - "LLM provider integration"
+    - "Security implementation"
+  affected_areas:
+    - "Project planning documentation"                       # modules, folders, cloud resources
+    - "Task prioritization strategy"
+  unaffected_areas:
+    - "Existing frontend template code"                       # sanity list
+    - "Existing backend configuration"
+
+# ── 3. Stakeholders & Roles ────────────────────────────────────────────────────────────────
+# [x] Who needs to know / approve / work?
+stakeholders:
+  product_owner:        "Project Team Lead"
+  technical_lead:       "Backend Lead"
+  project_manager:      "POC Manager"
+  developers:           ["Backend Developer", "Frontend Developer"]     # ["@alice", "@bob"]
+  qa_engineers:         ["QA Lead"]
+  devops_engineers:     ["Azure DevOps Engineer"]
+  security_reviewer:    "Security Lead"
+  external_parties:     ["Microsoft Azure Support"]     # vendors, clients, regulators
+
+# ── 4. Impact Assessment ───────────────────────────────────────────────────────────────────
+# [x] What parts of the system or users will feel the change?
+impact_assessment:
+  services_impacted:
+    - "None - Planning phase only"                       # "payment‑service"
+  code_modules:
+    - "Planning documentation (.tasks/tasks/)"                       # "./pkg/payment/..."
+  infra_components:
+    - "None - Planning phase only"                       # "AWS RDS instance xyz"
+  data_migrations:      "no"     # "yes / no / TBD"
+  user_impact:          "none"     # "none", "admins only", …
+  backwards_compat:     "N/A"     # "kept", "breaking API v1", …
+
+# ── 5. Risk Assessment ─────────────────────────────────────────────────────────────────────
+# [x] Identify & mitigate risks
+risks:
+  overall_level: "low"            # low | medium | high
+  items:
+    - id:           "R‑01"         # "R‑01"
+      description:  "Incorrect task prioritization could delay PoC delivery"         # risk description
+      likelihood:   "low"         # low | medium | high
+      impact:       "medium"         # low | medium | high
+      mitigation:   "Thorough analysis of globalPlan.md requirements and technical dependencies"         # planned action
+    - id:           "R‑02"
+      description:  "Missing critical dependencies in first task identification"
+      likelihood:   "low"
+      impact:       "high"
+      mitigation:   "Comprehensive review of all technical handbooks and system requirements"
+
+# ── 6. Dependencies & Constraints ──────────────────────────────────────────────────────────
+# [x] External things that can block or shape the change
+dependencies_and_constraints:
+  dependent_changes:
+    - "None - This is the first task identification"                       # link / id of another change
+  external_dependencies:
+    - "Azure AI Foundry API availability"                       # vendor API version, library release
+    - "FastAPI 0.115.12 (already installed)"
+    - "sse-starlette 2.3.6 (already installed)"
+  time_constraints:    "PoC timeline - need rapid iteration"      # maintenance window, legal deadline
+  resource_constraints: "Limited to PoC scope - not production-hardened"     # team capacity, budget cap
+
+# ── 7. Solution Overview ───────────────────────────────────────────────────────────────────
+# [x] High‑level technical approach
+solution_overview:
+  approach_summary: "Build a FastAPI backend service that serves as the API gateway for the LLM Document Generation PoC. The backend will handle authentication, file uploads, request orchestration, and real-time progress streaming via SSE. Key technologies: FastAPI 0.115.12 for the web framework, Pydantic 2.11.6 for data validation, sse-starlette 2.3.6 for Server-Sent Events, OpenTelemetry for observability, and Python 3.13 with UV package manager. The architecture follows RESTful patterns with async/await for I/O operations and implements the Repository/Service/Controller pattern for clean separation of concerns."         # 1‑paragraph
+  design_documents: [".tasks/docs/globalPlan.md", ".tasks/docs/globalContext.md", ".tasks/docs/handbooks/FastAPI-0.115.yml", ".tasks/docs/handbooks/Server-Sent-Events-sse-starlette-2.3.6.yml"]         # links to ADRs, diagrams
+  architecture_diagram_ascii: |
+    ┌───────────────────────────────────────────────────────────────────┐
+    │                    React Frontend (READY)                         │
+    │  - React 18.2.0 with TypeScript                                  │
+    │  - Tailwind CSS + shadcn/ui components                           │
+    │  - React Router for navigation                                   │
+    └─────────────────────────────┬─────────────────────────────────────┘
+                                 │
+                                 │ HTTPS + SSE
+                                 │
+    ┌─────────────────────────────┼─────────────────────────────────────┐
+    │              FastAPI Backend (TO BUILD) <-- FIRST TASK           │
+    │  ┌─────────────────────────────────────────────────────────────┐  │
+    │  │ API Layer:                                                  │  │
+    │  │ - GET /health                    (Health check)            │  │
+    │  │ - POST /api/v1/generate          (File upload + auth)      │  │
+    │  │ - GET /api/v1/generate/{id}/stream (SSE progress)         │  │
+    │  └──────────────────────────┬─────────────────────────────────┘  │
+    │                           │                                       │
+    │  ┌──────────────────────────┼─────────────────────────────────┐  │
+    │  │ Service Layer:          │                                │  │
+    │  │ - DocumentProcessor     │  Dependencies:                 │  │
+    │  │ - AuthService           │  - Pydantic models             │  │
+    │  │ - FileValidator         │  - OpenTelemetry tracing       │  │
+    │  │ - SSEManager            │  - Structured logging          │  │
+    │  └──────────────────────────┴─────────────────────────────────┘  │
+    └─────────────────────────────┬─────────────────────────────────────┘
+                                 │
+                                 │ Future: API calls
+                                 │
+    ┌─────────────────────────────┼─────────────────────────────────────┐
+    │         Azure AI Foundry LLM (FUTURE INTEGRATION)                │
+    └───────────────────────────────────────────────────────────────────┘
+  alternatives_considered:
+    - option:   "Start with Azure deployment setup"
+      rationale: "Rejected - Need working application before deployment"
+    - option:   "Start with LLM integration"
+      rationale: "Rejected - Need API structure and auth first"
+    - option:   "Start with frontend-backend integration"
+      rationale: "Rejected - Backend API structure must exist first"
+    - option:   "Monolithic approach without service layers"
+      rationale: "Rejected - Poor maintainability and testing"
+  chosen_option_rationale: "FastAPI backend with SSE is the critical path dependency that enables all other features. The modular architecture with clear separation of concerns ensures: (1) Easy testing with dependency injection, (2) Clean integration points for future LLM services, (3) Scalable request handling with async/await, (4) Real-time progress updates matching the 'Generator Style' UX requirement. Following the technical handbooks ensures best practices for security, observability, and deployment readiness."
+
+# ── 8. Implementation Plan ────────────────────────────────────────────────────────────────
+# [x] Concrete work items
+implementation_plan:
+  feature_flags:
+    - "N/A - PoC phase"                       # "enable‑stripe‑timeout‑v2"
+  tasks:
+    - id:      "T‑01"              # "T‑01"
+      summary: "Set up basic FastAPI project structure with UV package manager"
+      owner:   "Backend Developer"
+      estimate: "0.5 d"            # "3 d"
+      status:  "identified"             # todo | in‑progress | done
+      details: |
+        - Initialize pyproject.toml with FastAPI 0.115.12, sse-starlette 2.3.6, pydantic 2.11.6
+        - Configure UV for deterministic dependency management
+        - Create folder structure: app/, app/routes/, app/models/, app/services/, app/dependencies/
+        - Set up main.py with FastAPI app initialization
+        - Configure Python 3.13 runtime flags for performance
+    - id:      "T‑02"
+      summary: "Implement health endpoint with OpenTelemetry instrumentation"
+      owner:   "Backend Developer"
+      estimate: "0.5 d"
+      status:  "identified"
+      details: |
+        - Create GET /health endpoint returning {"status": "ok", "version": "0.1.0"}
+        - Set up OpenTelemetry tracing with W3C propagation
+        - Configure OTLP exporter for Azure Monitor integration
+        - Add startup/shutdown event handlers for telemetry
+    - id:      "T‑03"
+      summary: "Implement password-based authentication middleware"
+      owner:   "Backend Developer"
+      estimate: "1 d"
+      status:  "identified"
+      details: |
+        - Create auth dependency using FastAPI Depends pattern
+        - Read ACCESS_PASSWORD from environment variable
+        - Implement constant-time password comparison for security
+        - Create Pydantic model for auth validation
+        - Return HTTP 401 for invalid credentials
+    - id:      "T‑04"
+      summary: "Create file upload endpoint with multi-format validation"
+      owner:   "Backend Developer"
+      estimate: "1.5 d"
+      status:  "identified"
+      details: |
+        - POST /api/v1/generate endpoint accepting multipart/form-data
+        - Validate file extensions: .pdf, .docx, .csv, .xlsx
+        - Implement file size limits (e.g., 50MB per file)
+        - Create Pydantic models for request/response schemas
+        - Store uploaded files temporarily in memory or disk
+        - Add file type detection beyond extension checking
+    - id:      "T‑05"
+      summary: "Implement SSE endpoint for real-time progress streaming"
+      owner:   "Backend Developer"
+      estimate: "1.5 d"
+      status:  "identified"
+      details: |
+        - GET /api/v1/generate/{request_id}/stream using sse-starlette
+        - Implement EventSourceResponse with proper headers
+        - Design event schema: {"event": "progress", "data": {"step": X, "total": Y, "message": "..."}}
+        - Add heartbeat mechanism (every 15s) to prevent timeouts
+        - Implement graceful disconnection handling
+        - Consider queue-based architecture for multiple consumers
+    - id:      "T‑06"
+      summary: "Create request processing service stub"
+      owner:   "Backend Developer"
+      estimate: "1 d"
+      status:  "identified"
+      details: |
+        - Create service layer for document processing orchestration
+        - Implement request ID generation (UUID)
+        - Design state management for processing status
+        - Create mock processing steps with artificial delays
+        - Emit progress events through SSE channel
+    - id:      "T‑07"
+      summary: "Set up error handling and logging"
+      owner:   "Backend Developer"
+      estimate: "0.5 d"
+      status:  "identified"
+      details: |
+        - Implement global exception handler
+        - Create custom exception classes
+        - Set up structured logging with correlation IDs
+        - Configure appropriate log levels per environment
+        - Ensure sensitive data is not logged
+    - id:      "T‑08"
+      summary: "Create Docker configuration for local development"
+      owner:   "DevOps Engineer"
+      estimate: "0.5 d"
+      status:  "identified"
+      details: |
+        - Create multi-stage Dockerfile following handbook patterns
+        - Configure for Python 3.13-slim base image
+        - Set up proper signal handling with --init
+        - Create docker-compose.yml for local development
+        - Ensure hot-reload works with volume mounts
+    - id:      "T‑09"
+      summary: "Write API documentation and integration tests"
+      owner:   "Backend Developer"
+      estimate: "1 d"
+      status:  "identified"
+      details: |
+        - Leverage FastAPI's automatic OpenAPI generation
+        - Add detailed descriptions to all endpoints
+        - Create pytest fixtures for test client
+        - Write integration tests for all endpoints
+        - Test SSE streaming with httpx async client
+        - Verify authentication flows
+    - id:      "T‑10"
+      summary: "Prepare for Azure deployment configuration"
+      owner:   "DevOps Engineer"
+      estimate: "0.5 d"
+      status:  "identified"
+      details: |
+        - Document required environment variables
+        - Create .env.example file
+        - Prepare for Azure Key Vault integration
+        - Document App Service configuration needs
+        - Plan for CORS configuration for frontend
+
+# ── 9. Configuration & Infrastructure Changes ─────────────────────────────────────────────
+# [x] Any config, IaC or cloud resource updates
+config_and_infra_changes:
+  config_keys:
+    - key:        "ACCESS_PASSWORD"           # "PAYMENT_TIMEOUT_SEC"
+      action:     "add"           # add | modify | remove
+      default:    "required"           # "30"
+      envs:       ["dev", "prod"]           # ["dev", "prod"]
+    - key:        "AZURE_FOUNDRY_ENDPOINT"
+      action:     "add"
+      default:    "required"
+      envs:       ["dev", "prod"]
+    - key:        "AZURE_FOUNDRY_API_KEY"
+      action:     "add"
+      default:    "required"
+      envs:       ["dev", "prod"]
+  infrastructure:
+    - description: "None for initial backend setup"          # "create SQS DLQ"
+      IaC_path:    "TBD in future tasks"          # "./terraform/queue.tf"
+      owner:       "DevOps Engineer"
+
+# ── 10. Testing Strategy ──────────────────────────────────────────────────────────────────
+# [x] Ensure change works & stays working
+testing_strategy:
+  levels:
+    unit:
+      coverage_target: "N/A - Planning phase"      # "≥ 90 %"
+    integration:
+      notes: "N/A - Planning phase"
+    e2e:
+      notes: "N/A - Planning phase"
+    performance:
+      notes: "N/A - Planning phase"
+    security:
+      notes: "N/A - Planning phase"
+  acceptance_criteria:
+    - "First implementation task clearly identified"                       # bullet list of pass/fail criteria
+    - "Task aligns with globalPlan.md requirements"
+    - "All dependencies and prerequisites documented"
+    - "Clear implementation subtasks defined"
+  test_data_preparation: "N/A - Planning phase"
+
+# ── 11. Rollout / Deployment Plan ─────────────────────────────────────────────────────────
+# [x] How will we ship it?
+rollout_plan:
+  environments:
+    - name: "N/A - Planning phase"                 # "staging"
+      sequence: 0              # lower → higher
+  rollout_strategy: "N/A - Planning document"         # blue‑green | canary | big‑bang | toggle
+  scheduled_window: "Immediate - Planning phase"         # "2025‑07‑10 23:00‑01:00 UTC"
+  monitoring_first_minutes: "N/A" # who watches the charts?
+  verification_steps:
+    - "Review plan document for completeness"                       # "check dashboard Payment > SuccessRate"
+    - "Confirm first task aligns with requirements"
+
+# ── 12. Rollback / Contingency Plan ───────────────────────────────────────────────────────
+# TODO: [ ] If things go wrong …
+rollback_plan:
+  trigger_conditions:
+    - ""                       # "p95 latency > 300 ms for 15 min"
+  rollback_steps:
+    - ""                       # "re‑point traffic to old task set"
+  data_restore_plan: ""
+  communication: ""            # who tells whom?
+
+# ── 13. Observability & Monitoring ─────────────────────────────────────────────────────────
+# TODO: [ ] How do we know we are healthy?
+observability:
+  metrics_to_watch:
+    - name: ""
+      threshold: ""            # "≥ 99.5% success"
+  alerts:
+    - name: ""
+      paging_policy: ""        # "sev‑1 ‑ page SRE"
+  dashboards:      []          # Grafana links
+  logging_changes: ""          # new log fields?
+  success_criteria: ""         # condition to declare success
+
+# ── 14. Security & Compliance ─────────────────────────────────────────────────────────────
+# TODO: [ ] Guard rails
+security_and_compliance:
+  considerations:
+    - ""                       # DDoS, PII, …
+  checks:
+    - name: ""                 # "static‑analysis"
+      status: ""               # pending | passed
+  approvals_required:
+    - ""                       # "Data Protection Officer"
+
+# ── 15. Documentation Updates ─────────────────────────────────────────────────────────────
+# [x] Keep docs aligned
+documentation_updates:
+  artifacts:
+    - path: ".tasks/tasks/20250616-143941-determine-first-implementation-task-from-global-plan/plan.yaml"                 # "docs/api/payments.md"
+      owner: "Claude AI Planning Agent"
+      status: "done"               # todo | in‑progress | done
+    - path: "Future: backend/README.md"
+      owner: "Backend Developer"
+      status: "todo"
+
+# ── 16. Communication Plan ───────────────────────────────────────────────────────────────
+# [x] Keep everyone in the loop
+communication_plan:
+  channels:
+    - name: "Project Team Channel"                 # "slack‑#payments"
+      purpose: "Share planning outcomes and next steps"              # "daily status"
+  release_notes_owner: "Project Manager"
+  training_materials: "Technical handbooks in .tasks/docs/handbooks/"       # link to slides / demos
+
+# ── 17. Timeline & Milestones ─────────────────────────────────────────────────────────────
+# [x] Schedule at‑a‑glance
+timeline:
+  milestones:
+    - name: "Planning phase complete"                 # "code complete"
+      date: "2025-06-16"                 # YYYY‑MM‑DD
+      status: "done"               # planned | done | slipped
+    - name: "FastAPI backend setup"
+      date: "2025-06-20"
+      status: "planned"
+
+# ── 18. Budget & Resources ────────────────────────────────────────────────────────────────
+# [x] Cost awareness
+resources:
+  estimated_effort_person_days: "4 days for backend setup"
+  cost_estimate: "Minimal - PoC phase"            # cloud cost, tooling
+  tooling_budget: "$0 - Using existing tools"
+
+# ── 19. Approvals & Sign‑off ─────────────────────────────────────────────────────────────
+# TODO: [ ] Authority check
+approvals:
+  required:
+    - role: ""                 # "Product Owner"
+      person: ""
+      status: ""               # pending | approved
+  final_sign_off: ""           # person / date
+
+# ── 20. Post‑Deployment Validation ───────────────────────────────────────────────────────
+# TODO: [ ] Proving the change works in prod
+post_deployment_validation:
+  smoke_tests:
+    - ""                       # "place $0 order"
+  user_acceptance: ""          # who / when
+  signoff_criteria: ""
+
+# ── 21. Post‑Deployment Review & Lessons ─────────────────────────────────────────────────
+# TODO: [ ] Continuous improvement
+post_deployment_review:
+  retrospective_date: ""
+  lessons_learned:
+    - topic: ""
+      insight: ""
+  follow_up_actions:
+    - ""
+
+# ── 22. Change History ───────────────────────────────────────────────────────────────────
+# [x] Track edits to this plan
+change_history:
+  - date: "2025-06-16"
+    author: "Claude AI Planning Agent"
+    change: "Initial plan creation"
+  - date: "2025-06-16"
+    author: "Claude AI Planning Agent"
+    change: "Completed analysis and identified first implementation task: FastAPI backend with SSE"
+
+# ── 23. Checklists (CI, Release, etc.) ───────────────────────────────────────────────────
+# TODO: [ ] Handy tick‑boxes
+checklists:
+  pre_merge:
+    - ""                       # "unit tests green"
+  pre_deploy:
+    - ""
+  post_deploy:
+    - ""
+
+# ── 24. Attachments & References ─────────────────────────────────────────────────────────
+# [x] Supporting material
+attachments_and_references:
+  attachments:
+    - name: "Global Plan Document"
+      path: ".tasks/docs/globalPlan.md"
+    - name: "Global Context Document"
+      path: ".tasks/docs/globalContext.md"
+  references:
+    - title: "FastAPI Documentation"
+      url: "https://fastapi.tiangolo.com/"
+      note: "Core framework for backend implementation"
+    - title: "SSE-Starlette Documentation"
+      url: "https://github.com/sysid/sse-starlette"
+      note: "Server-Sent Events implementation for real-time streaming"
+    - title: "Azure AI Foundry Documentation"
+      url: "https://azure.microsoft.com/en-us/products/ai-foundry"
+      note: "LLM provider for document processing"
+    - title: "Pydantic Documentation"
+      url: "https://docs.pydantic.dev/latest/"
+      note: "Data validation and serialization library"
+    - title: "OpenTelemetry Python"
+      url: "https://opentelemetry.io/docs/instrumentation/python/"
+      note: "Observability instrumentation"
+    - title: "UV Package Manager"
+      url: "https://github.com/astral-sh/uv"
+      note: "Fast Python package management"
+
+# ── 25. Technical Implementation Guide ────────────────────────────────────────────────
+# [x] Detailed technical patterns and code examples
+technical_implementation_guide:
+  project_structure: |
+    backend/
+    ├── .python-version          # Python 3.13
+    ├── pyproject.toml           # Project dependencies
+    ├── uv.lock                  # Locked dependencies
+    ├── .env.example             # Environment variables template
+    ├── Dockerfile               # Multi-stage container build
+    ├── docker-compose.yml       # Local development
+    ├── app/
+    │   ├── __init__.py
+    │   ├── main.py             # FastAPI app entry point
+    │   ├── config.py           # Configuration management
+    │   ├── dependencies/
+    │   │   ├── __init__.py
+    │   │   ├── auth.py         # Authentication dependency
+    │   │   └── telemetry.py    # OpenTelemetry setup
+    │   ├── models/
+    │   │   ├── __init__.py
+    │   │   ├── requests.py     # Pydantic request models
+    │   │   └── responses.py    # Pydantic response models
+    │   ├── routes/
+    │   │   ├── __init__.py
+    │   │   ├── health.py       # Health check endpoint
+    │   │   ├── generate.py     # Document generation endpoints
+    │   │   └── stream.py       # SSE streaming endpoint
+    │   ├── services/
+    │   │   ├── __init__.py
+    │   │   ├── document_processor.py
+    │   │   ├── file_validator.py
+    │   │   └── sse_manager.py
+    │   └── utils/
+    │       ├── __init__.py
+    │       └── logging.py     # Structured logging setup
+    └── tests/
+        ├── __init__.py
+        ├── conftest.py          # pytest fixtures
+        ├── test_health.py
+        ├── test_auth.py
+        └── test_generate.py
+  
+  key_code_patterns:
+    - name: "pyproject.toml setup"
+      code: |
+        [project]
+        name = "md-decision-maker-backend"
+        version = "0.1.0"
+        description = "LLM Document Generation PoC Backend"
+        requires-python = ">=3.13"
+        dependencies = [
+            "fastapi>=0.115.12",
+            "sse-starlette>=2.3.6",
+            "pydantic>=2.11.6",
+            "python-multipart>=0.0.25",  # For file uploads
+            "uvicorn[standard]>=0.29.0",
+            "opentelemetry-sdk>=1.29.0",
+            "opentelemetry-instrumentation-fastapi>=0.46b0",
+            "opentelemetry-exporter-otlp>=1.29.0",
+            "python-dotenv>=1.0.1",
+        ]
+        
+        [project.optional-dependencies]
+        dev = [
+            "pytest>=8.1.0",
+            "pytest-asyncio>=0.23.5",
+            "httpx>=0.27.0",
+            "ruff>=0.4.0",
+            "mypy>=1.10.0",
+        ]
+    
+    - name: "FastAPI app initialization (main.py)"
+      code: |
+        from contextlib import asynccontextmanager
+        from fastapi import FastAPI
+        from fastapi.middleware.cors import CORSMiddleware
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+        
+        from app.config import settings
+        from app.dependencies.telemetry import init_telemetry
+        from app.routes import health, generate, stream
+        from app.utils.logging import setup_logging
+        
+        # Setup logging
+        setup_logging()
+        
+        @asynccontextmanager
+        async def lifespan(app: FastAPI):
+            # Startup
+            init_telemetry(settings.service_name)
+            yield
+            # Shutdown
+            # Cleanup tasks here
+        
+        app = FastAPI(
+            title="LLM Document Generation API",
+            version="0.1.0",
+            lifespan=lifespan,
+            docs_url="/api/docs" if settings.enable_docs else None,
+        )
+        
+        # CORS configuration for frontend
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=settings.allowed_origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        
+        # OpenTelemetry instrumentation
+        FastAPIInstrumentor.instrument_app(app)
+        
+        # Include routers
+        app.include_router(health.router, tags=["health"])
+        app.include_router(generate.router, prefix="/api/v1", tags=["generate"])
+        app.include_router(stream.router, prefix="/api/v1", tags=["stream"])
+    
+    - name: "Authentication dependency (dependencies/auth.py)"
+      code: |
+        import secrets
+        from fastapi import Depends, HTTPException, status
+        from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+        
+        from app.config import settings
+        
+        security = HTTPBearer()
+        
+        async def verify_password(
+            credentials: HTTPAuthorizationCredentials = Depends(security)
+        ) -> None:
+            """Verify the provided password against the configured password."""
+            provided_password = credentials.credentials
+            expected_password = settings.access_password
+            
+            # Constant-time comparison to prevent timing attacks
+            if not secrets.compare_digest(provided_password, expected_password):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid authentication credentials",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+    
+    - name: "Docker configuration"
+      code: |
+        # Dockerfile
+        # ---- build stage ----
+        FROM python:3.13-slim AS builder
+        
+        # Install uv
+        RUN pip install --no-cache-dir uv
+        
+        WORKDIR /app
+        
+        # Copy dependency files
+        COPY pyproject.toml uv.lock ./
+        
+        # Install dependencies
+        RUN uv pip sync --system
+        
+        # ---- runtime stage ----
+        FROM python:3.13-slim
+        
+        # Copy installed packages from builder
+        COPY --from=builder /usr/local/lib/python3.13 /usr/local/lib/python3.13
+        
+        WORKDIR /app
+        
+        # Copy application code
+        COPY app ./app
+        
+        # Create non-root user
+        RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+        USER appuser
+        
+        # Environment variables
+        ENV PYTHONUNBUFFERED=1 \
+            PYTHONHASHSEED=random \
+            PYTHONPATH=/app
+        
+        EXPOSE 8000
+        
+        # Health check
+        HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+          CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        
+        # Run with proper signal handling
+        CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    
+    - name: "Environment configuration (.env.example)"
+      code: |
+        # Authentication
+        ACCESS_PASSWORD=your-secure-password-here
+        
+        # Azure Configuration  
+        AZURE_FOUNDRY_ENDPOINT=https://your-resource.openai.azure.com/
+        AZURE_FOUNDRY_API_KEY=your-api-key-here
+        OTEL_EXPORTER_OTLP_ENDPOINT=https://your-app-insights.monitor.azure.com
+        
+        # Application Settings
+        APP_ENV=development
+        LOG_LEVEL=INFO
+        SERVICE_NAME=md-decision-maker-backend
+        
+        # CORS Settings
+        ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+        
+        # Feature Flags
+        ENABLE_DOCS=true  # Set to false in production
+  
+  testing_patterns:
+    - name: "pytest fixture for test client"
+      code: |
+        # tests/conftest.py
+        import pytest
+        from httpx import AsyncClient
+        from fastapi.testclient import TestClient
+        
+        from app.main import app
+        from app.config import settings
+        
+        @pytest.fixture
+        def test_client():
+            return TestClient(app)
+        
+        @pytest.fixture
+        async def async_client():
+            async with AsyncClient(app=app, base_url="http://test") as client:
+                yield client
+        
+        @pytest.fixture
+        def auth_headers():
+            """Provide valid authentication headers for tests."""
+            return {"Authorization": f"Bearer {settings.access_password}"}
+    
+    - name: "Integration test example"
+      code: |
+        # tests/test_generate.py
+        import pytest
+        from httpx import AsyncClient
+        
+        @pytest.mark.asyncio
+        async def test_generate_endpoint(
+            async_client: AsyncClient,
+            auth_headers: dict
+        ):
+            # Create test file
+            files = {
+                "file": ("test.pdf", b"fake pdf content", "application/pdf")
+            }
+            data = {
+                "description": "Generate a summary of this document"
+            }
+            
+            response = await async_client.post(
+                "/api/v1/generate",
+                files=files,
+                data=data,
+                headers=auth_headers
+            )
+            
+            assert response.status_code == 200
+            result = response.json()
+            assert "request_id" in result
+            assert "stream_url" in result
+  
+  deployment_readiness:
+    - name: "docker-compose.yml for local development"
+      code: |
+        version: '3.8'
+        
+        services:
+          backend:
+            build:
+              context: .
+              dockerfile: Dockerfile
+            ports:
+              - "8000:8000"
+            environment:
+              - APP_ENV=development
+              - LOG_LEVEL=DEBUG
+            env_file:
+              - .env
+            volumes:
+              - ./app:/app/app  # Hot reload
+            command: [
+              "uvicorn", "app.main:app",
+              "--host", "0.0.0.0",
+              "--port", "8000",
+              "--reload"
+            ]
+          
+          # Future: Add Jaeger for local tracing
+          # jaeger:
+          #   image: jaegertracing/all-in-one:1.55
+          #   ports:
+          #     - "16686:16686"
+          #     - "4317:4317"
+  
+  security_considerations: |
+    1. Authentication:
+       - Use constant-time comparison for password checking
+       - Consider upgrading to JWT tokens for production
+       - Implement rate limiting on auth endpoints
+    
+    2. File Upload Security:
+       - Validate file types beyond extension checking
+       - Implement virus scanning for uploaded files
+       - Store files in isolated storage with unique IDs
+       - Set maximum file size limits
+    
+    3. API Security:
+       - Enable CORS with specific origins only
+       - Implement request ID tracking
+       - Add API versioning from the start
+       - Use HTTPS in all environments
+    
+    4. Observability:
+       - Never log sensitive data (passwords, file contents)
+       - Use structured logging with correlation IDs
+       - Implement distributed tracing from day one
+       - Monitor error rates and latencies
+  
+  next_steps_after_backend: |
+    1. Frontend Integration:
+       - Update React app to call backend endpoints
+       - Implement EventSource for SSE consumption
+       - Add file upload UI with progress tracking
+       - Handle authentication flow
+    
+    2. LLM Integration:
+       - Add Azure AI Foundry SDK to dependencies
+       - Implement document chunking strategy
+       - Create prompt templates
+       - Handle token limits and rate limiting
+    
+    3. Document Processing:
+       - Add libraries: pypdf, python-docx, pandas, openpyxl
+       - Implement file content extraction
+       - Design token counting and chunking logic
+       - Create document processing pipeline
+    
+    4. Azure Deployment:
+       - Create Azure Container Registry
+       - Configure App Service with containers
+       - Set up Azure Key Vault for secrets
+       - Configure Application Insights
+       - Implement Azure Blob Storage for outputs
+    
+    5. Production Readiness:
+       - Add comprehensive error handling
+       - Implement retry logic for external calls
+       - Set up monitoring and alerting
+       - Create operational runbooks
+       - Plan for disaster recovery
+    
+    - name: "SSE streaming endpoint (routes/stream.py)"
+      code: |
+        from fastapi import APIRouter, Depends, HTTPException
+        from sse_starlette.sse import EventSourceResponse
+        import asyncio
+        import json
+        from datetime import datetime
+        
+        from app.dependencies.auth import verify_password
+        from app.services.sse_manager import SSEManager
+        
+        router = APIRouter()
+        sse_manager = SSEManager()
+        
+        @router.get("/generate/{request_id}/stream")
+        async def stream_progress(
+            request_id: str,
+            _: None = Depends(verify_password)
+        ):
+            """Stream processing progress via Server-Sent Events."""
+            
+            async def event_generator():
+                try:
+                    # Send initial connection event
+                    yield {
+                        "event": "connected",
+                        "data": json.dumps({
+                            "request_id": request_id,
+                            "timestamp": datetime.utcnow().isoformat()
+                        })
+                    }
+                    
+                    # Subscribe to events for this request
+                    async for event in sse_manager.subscribe(request_id):
+                        yield event
+                        
+                    # Send completion event
+                    yield {
+                        "event": "complete",
+                        "data": json.dumps({
+                            "request_id": request_id,
+                            "timestamp": datetime.utcnow().isoformat()
+                        })
+                    }
+                    
+                except asyncio.CancelledError:
+                    # Client disconnected
+                    await sse_manager.unsubscribe(request_id)
+                    raise
+            
+            return EventSourceResponse(
+                event_generator(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache, no-transform",
+                    "X-Accel-Buffering": "no",  # Disable Nginx buffering
+                }
+            )
