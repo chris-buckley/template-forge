@@ -1,0 +1,99 @@
+"""Router for Server-Sent Events streaming endpoints."""
+
+import json
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sse_starlette.sse import EventSourceResponse
+
+from app.dependencies.auth import verify_password
+from app.services.document_processor import document_processor
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+router = APIRouter()
+
+
+@router.get(
+    "/generate/{request_id}/stream",
+    summary="Stream generation progress",
+    description="Connect to Server-Sent Events stream for real-time progress updates",
+    response_class=EventSourceResponse,
+    responses={
+        200: {
+            "description": "SSE stream connected",
+            "content": {
+                "text/event-stream": {
+                    "example": 'event: progress\ndata: {"step": 1, "total": 10, "message": "Processing..."}\n\n'
+                }
+            },
+        },
+        404: {"description": "Request not found"},
+        401: {"description": "Unauthorized"},
+    },
+)
+async def stream_generation_progress(request_id: str, _: None = Depends(verify_password)) -> EventSourceResponse:
+    """
+    Stream real-time progress updates for a document generation request.
+
+    This endpoint uses Server-Sent Events (SSE) to push progress updates to the client.
+
+    Event Types:
+    - `connected`: Initial connection established
+    - `status`: Current status update
+    - `progress`: Processing progress update
+    - `complete`: Generation completed successfully
+    - `error`: Generation failed with error
+    - `heartbeat`: Keep-alive signal (every 15 seconds)
+
+    Example event data:
+    ```
+    event: progress
+    data: {"step": 3, "total": 10, "message": "Extracting text from documents..."}
+
+    event: complete
+    data: {"status": "completed", "timestamp": "2025-06-16T12:00:00Z"}
+    ```
+    """
+    # Check if request exists
+    request_status = await document_processor.get_request_status(request_id)
+    if not request_status:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Request {request_id} not found")
+
+    logger.info("Client connected to SSE stream", extra={"request_id": request_id})
+
+    async def event_generator():
+        """Generate SSE events for the client."""
+        try:
+            # Send initial connection event
+            yield {
+                "event": "connected",
+                "data": json.dumps({"request_id": request_id, "timestamp": datetime.now(timezone.utc).isoformat()}),
+            }
+
+            # Subscribe to events for this request
+            async for event in document_processor.subscribe_to_request(request_id):
+                yield event
+
+        except Exception as e:
+            logger.error("Error in SSE stream", extra={"request_id": request_id, "error": str(e)}, exc_info=True)
+            # Send error event
+            yield {
+                "event": "error",
+                "data": json.dumps(
+                    {"error": "Stream error occurred", "timestamp": datetime.now(timezone.utc).isoformat()}
+                ),
+            }
+        finally:
+            logger.info("Client disconnected from SSE stream", extra={"request_id": request_id})
+
+    return EventSourceResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",  # Disable Nginx buffering
+            "Connection": "keep-alive",
+        },
+    )

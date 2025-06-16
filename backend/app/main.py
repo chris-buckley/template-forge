@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.dependencies.telemetry import init_telemetry, instrument_app, shutdown_telemetry
-from app.routes import health_router, test_router
+from app.routes import health_router, test_router, generate_router, stream_router
 from app.utils.logging import setup_logging
 
 # Setup logging
@@ -81,6 +81,8 @@ except Exception as e:
 # Include routers
 app.include_router(health_router.router)
 app.include_router(test_router.router)
+app.include_router(generate_router.router, prefix="/api/v1", tags=["generate"])
+app.include_router(stream_router.router, prefix="/api/v1", tags=["stream"])
 
 
 if __name__ == "__main__":

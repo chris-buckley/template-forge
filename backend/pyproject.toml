@@ -15,6 +15,7 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.46b0",
     "opentelemetry-exporter-otlp>=1.29.0",
     "python-dotenv>=1.0.1",
+    "python-multipart>=0.0.16",
 ]
 
 [project.optional-dependencies]
