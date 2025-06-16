@@ -1,10 +1,37 @@
 [project]
-name = "backend"
+name = "md-decision-maker-backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "LLM Document Generation PoC Backend"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115.12",
     "sse-starlette>=2.3.6",
+    "pydantic>=2.11.6",
+    "pydantic-settings>=2.3.0",
+    "python-multipart>=0.0.25",
+    "uvicorn[standard]>=0.29.0",
+    "opentelemetry-sdk>=1.29.0",
+    "opentelemetry-instrumentation-fastapi>=0.46b0",
+    "opentelemetry-exporter-otlp>=1.29.0",
+    "python-dotenv>=1.0.1",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.0",
+    "pytest-asyncio>=0.23.5",
+    "httpx>=0.27.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
