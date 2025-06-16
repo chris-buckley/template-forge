@@ -16,8 +16,8 @@
 
 | Task ID | Summary | Owner | Status | Last Updated | SITREP |
 |---------|---------|-------|--------|--------------|--------|
-| T-01 | Set up basic FastAPI project structure with UV package manager | Backend Developer | **done** | 2025-06-16 | [01_fastapi_project_structure_sitrep.md](./SITREPS/01_fastapi_project_structure_sitrep.md) |
-| T-02 | Implement health endpoint with OpenTelemetry instrumentation | Backend Developer | **done** | 2025-06-16 | [02_health_endpoint_opentelemetry_sitrep.md](./SITREPS/02_health_endpoint_opentelemetry_sitrep.md) |
+| T-01 | Set up basic FastAPI project structure with UV package manager | Backend Developer | **done** | 2025-06-16 | [01_fastapi_project_structure_sitrep.md](./SITREPS/01_fastapi_project_structure_sitrep.md) ✅ |
+| T-02 | Implement health endpoint with OpenTelemetry instrumentation | Backend Developer | **done** | 2025-06-16 | [02_health_endpoint_opentelemetry_sitrep.md](./SITREPS/02_health_endpoint_opentelemetry_sitrep.md) ✅ |
 | T-03 | Implement password-based authentication middleware | Backend Developer | todo | 2025-06-16 | - |
 | T-04 | Create file upload endpoint with multi-format validation | Backend Developer | todo | 2025-06-16 | - |
 | T-05 | Implement SSE endpoint for real-time progress streaming | Backend Developer | todo | 2025-06-16 | - |
@@ -48,3 +48,4 @@
 * 2025-06-16: Fixed T-02: Removed B3 propagator dependency to fix ModuleNotFoundError, using only W3C Trace Context as primary requirement
 * 2025-06-16: Fixed T-02: Corrected import path for TraceContextTextMapPropagator - all tests now pass successfully
 * 2025-06-16: Verified T-02: Comprehensive handbook compliance check - 46/46 checks passed, linting clean, type checking passes
+* 2025-06-16: T-02 signed off and committed: `feat[backend]: implement health endpoint with OpenTelemetry instrumentation`
