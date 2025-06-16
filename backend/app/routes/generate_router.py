@@ -3,9 +3,10 @@
 from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 
 from app.dependencies.auth import verify_password
+from app.exceptions import ValidationError, ProcessingError, ResourceNotFoundError
 from app.schemas.generate_schema import GenerateResponse
 from app.services.document_processor import document_processor
 from app.utils.file_validation import validate_upload_file, validate_file_size
@@ -52,10 +53,13 @@ async def generate_document(
     """
     # Validate request
     if not files:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="At least one file must be uploaded")
+        raise ValidationError("At least one file must be uploaded", details={"field": "files"})
 
     if len(files) > 10:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Maximum 10 files can be uploaded at once")
+        raise ValidationError(
+            "Maximum 10 files can be uploaded at once",
+            details={"field": "files", "file_count": len(files), "max_allowed": 10},
+        )
 
     # Validate each file
     total_size = 0
@@ -83,9 +87,12 @@ async def generate_document(
         max_total_size = 200 * 1024 * 1024  # 200MB total
 
         if total_size > max_total_size:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"Total file size {total_size / (1024 * 1024):.1f}MB exceeds maximum allowed {max_total_size / (1024 * 1024):.1f}MB",
+            raise ValidationError(
+                f"Total file size {total_size / (1024 * 1024):.1f}MB exceeds maximum allowed {max_total_size / (1024 * 1024):.1f}MB",
+                details={
+                    "total_size_mb": round(total_size / (1024 * 1024), 1),
+                    "max_size_mb": round(max_total_size / (1024 * 1024), 1),
+                },
             )
 
         # Validate individual file sizes
@@ -107,13 +114,13 @@ async def generate_document(
 
         return response
 
-    except HTTPException:
-        # Re-raise HTTP exceptions
+    except (ValidationError, ProcessingError, ResourceNotFoundError):
+        # Re-raise our custom exceptions
         raise
     except Exception as e:
         logger.error("Error creating generation request", extra={"error": str(e)}, exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to process generation request"
+        raise ProcessingError(
+            "Failed to process generation request", details={"error_type": type(e).__name__, "error_message": str(e)}
         )
 
 
@@ -127,6 +134,6 @@ async def get_generation_status(request_id: str, _: None = Depends(verify_passwo
     request_status = await document_processor.get_request_status(request_id)
 
     if not request_status:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Request {request_id} not found")
+        raise ResourceNotFoundError("Generation request", request_id)
 
     return request_status.model_dump()

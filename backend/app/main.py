@@ -13,6 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.dependencies.telemetry import init_telemetry, instrument_app, shutdown_telemetry
+from app.error_handlers import register_exception_handlers
+from app.middleware import CorrelationIdMiddleware, LoggingMiddleware
 from app.routes import health_router, test_router, generate_router, stream_router
 from app.utils.logging import setup_logging
 
@@ -62,6 +64,16 @@ app = FastAPI(
     openapi_url="/api/openapi.json" if settings.ENABLE_DOCS else None,
 )
 
+# Register exception handlers
+register_exception_handlers(app)
+
+# Add middleware (order matters - first added is outermost)
+# Correlation ID should be first so all other middleware can use it
+app.add_middleware(CorrelationIdMiddleware)
+
+# Logging middleware to track requests
+app.add_middleware(LoggingMiddleware)
+
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
@@ -69,6 +81,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Correlation-ID", "X-Error-ID"],
 )
 
 # Add OpenTelemetry instrumentation

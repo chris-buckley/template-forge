@@ -4,7 +4,9 @@ import mimetypes
 from pathlib import Path
 from typing import Optional, Tuple, Set
 
-from fastapi import UploadFile, HTTPException, status
+from fastapi import UploadFile
+
+from app.exceptions import FileValidationError
 
 
 # Allowed file extensions and their expected MIME types
@@ -108,16 +110,18 @@ async def validate_upload_file(file: UploadFile) -> None:
     Comprehensive validation of uploaded file.
 
     Raises:
-        HTTPException: If validation fails
+        FileValidationError: If validation fails
     """
     # Check if file is provided
     if not file or not file.filename:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No file provided")
+        raise FileValidationError("No file provided", details={"field": "file"})
 
     # Validate extension
     is_valid, error_msg = validate_file_extension(file.filename)
     if not is_valid:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
+        raise FileValidationError(
+            error_msg or "Invalid file extension", details={"filename": file.filename, "field": "file"}
+        )
 
     # Validate content type
     is_valid, error_msg = validate_content_type(file.filename, file.content_type or "")
@@ -129,11 +133,14 @@ async def validate_upload_file(file: UploadFile) -> None:
             if guessed_type:
                 file.content_type = guessed_type
             else:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Unable to determine file content type"
+                raise FileValidationError(
+                    "Unable to determine file content type", details={"filename": file.filename, "field": "file"}
                 )
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg)
+            raise FileValidationError(
+                error_msg or "Invalid content type",
+                details={"filename": file.filename, "content_type": file.content_type, "field": "file"},
+            )
 
     # Check file size (this requires reading the file)
     # We'll check this during actual file processing
@@ -143,9 +150,14 @@ async def validate_upload_file(file: UploadFile) -> None:
     expected_type = get_file_extension(file.filename)
 
     if detected_type and detected_type != expected_type:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File content does not match extension. Expected {expected_type}, detected {detected_type}",
+        raise FileValidationError(
+            f"File content does not match extension. Expected {expected_type}, detected {detected_type}",
+            details={
+                "filename": file.filename,
+                "expected_type": expected_type,
+                "detected_type": detected_type,
+                "field": "file",
+            },
         )
 
 
@@ -154,12 +166,17 @@ def validate_file_size(size: int) -> None:
     Validate file size is within limits.
 
     Raises:
-        HTTPException: If file is too large
+        FileValidationError: If file is too large
     """
     if size > MAX_FILE_SIZE:
         size_mb = size / (1024 * 1024)
         max_mb = MAX_FILE_SIZE / (1024 * 1024)
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File size {size_mb:.1f}MB exceeds maximum allowed size of {max_mb:.1f}MB",
+        raise FileValidationError(
+            f"File size {size_mb:.1f}MB exceeds maximum allowed size of {max_mb:.1f}MB",
+            details={
+                "size_mb": round(size_mb, 1),
+                "max_size_mb": round(max_mb, 1),
+                "size_bytes": size,
+                "max_size_bytes": MAX_FILE_SIZE,
+            },
         )
