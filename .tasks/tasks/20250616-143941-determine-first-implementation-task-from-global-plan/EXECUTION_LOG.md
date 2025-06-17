@@ -25,7 +25,7 @@
 | T-07 | Set up error handling and logging | Backend Developer | **complete** | 2025-06-16 | [07_error_handling_logging_sitrep.md](./SITREPS/07_error_handling_logging_sitrep.md) ✅ |
 | T-08 | Create Docker configuration for local development | DevOps Engineer | **complete** | 2025-06-17 | [08_docker_configuration_sitrep.md](./SITREPS/08_docker_configuration_sitrep.md) ✅ |
 | T-09 | Write API documentation and integration tests | Backend Developer | **complete** | 2025-06-17 | [09_api_documentation_integration_tests_sitrep.md](./SITREPS/09_api_documentation_integration_tests_sitrep.md) ✅ |
-| T-10 | Prepare for Azure deployment configuration | DevOps Engineer | todo | 2025-06-16 | - |
+| T-10 | Prepare for Azure deployment configuration | DevOps Engineer | Cancelled | 2025-06-16 | ❌ |
 
 ## Milestones:
 
