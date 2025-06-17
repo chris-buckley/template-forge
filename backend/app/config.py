@@ -13,6 +13,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",  # Ignore extra fields from env
     )
 
     # Application Settings
@@ -27,8 +28,8 @@ class Settings(BaseSettings):
     # Security
     ACCESS_PASSWORD: str
 
-    # CORS Settings
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
+    # CORS Settings - stored as string, parsed to list
+    ALLOWED_ORIGINS_STR: str = "http://localhost:3000,http://localhost:3001"
 
     # Azure Configuration (for future use)
     AZURE_FOUNDRY_ENDPOINT: str = ""
@@ -37,6 +38,11 @@ class Settings(BaseSettings):
 
     # Feature Flags
     ENABLE_DOCS: bool = True
+
+    @property
+    def ALLOWED_ORIGINS(self) -> List[str]:
+        """Parse comma-separated origins."""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS_STR.split(",") if origin.strip()]
 
     @property
     def is_development(self) -> bool:

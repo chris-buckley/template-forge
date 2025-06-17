@@ -1,0 +1,86 @@
+# Azure-specific configuration for local testing with Azure services
+# This simulates the Azure App Service environment as closely as possible
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: md-decision-maker-backend:azure
+    container_name: md-decision-maker-backend-azure
+    ports:
+      - "${WEBSITES_PORT:-8000}:8000"
+    environment:
+      # Azure App Service environment
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+      - SERVICE_NAME=md-decision-maker-backend
+      # Azure App Service specific
+      - WEBSITES_PORT=8000
+      - WEBSITE_INSTANCE_ID=local-test
+      - WEBSITE_SITE_NAME=md-decision-maker
+      # Authentication
+      - ACCESS_PASSWORD=${ACCESS_PASSWORD:?ACCESS_PASSWORD is required}
+      # Azure AI Foundry
+      - AZURE_FOUNDRY_ENDPOINT=${AZURE_FOUNDRY_ENDPOINT:?AZURE_FOUNDRY_ENDPOINT is required}
+      - AZURE_FOUNDRY_API_KEY=${AZURE_FOUNDRY_API_KEY:?AZURE_FOUNDRY_API_KEY is required}
+      # Application Insights
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=md-decision-maker-backend,service.version=0.1.0,deployment.environment=azure-local
+      - OTEL_TRACES_SAMPLER=parentbased_always_on
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=none
+      # Azure Key Vault
+      - AZURE_KEY_VAULT_URI=${AZURE_KEY_VAULT_URI:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      # CORS - production domain
+      - ALLOWED_ORIGINS_STR=${ALLOWED_ORIGINS_STR:-https://your-frontend.azurewebsites.net}
+      # Feature flags
+      - ENABLE_DOCS=false
+    # No volume mounts in Azure simulation
+    networks:
+      - azure-network
+    # Production readiness
+    init: true
+    restart: unless-stopped
+    # Health check matching Azure App Service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    # Resource limits matching Azure App Service B1 tier
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1.75G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    # Security options similar to Azure App Service
+    security_opt:
+      - no-new-privileges:true
+    # Simulate Azure App Service logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=backend,environment=azure-local"
+
+networks:
+  azure-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.88.2.0/24  # Different subnet for Azure testing
+
+# Note: In real Azure deployment, these would be replaced by:
+# - Azure Container Registry for image storage
+# - Azure App Service for container hosting
+# - Azure Application Insights for monitoring
+# - Azure Key Vault for secrets
+# - Azure Front Door for load balancing

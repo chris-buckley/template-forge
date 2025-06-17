@@ -1,0 +1,106 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # For development, we'll override the default runtime stage
+      target: builder
+    image: md-decision-maker-backend:dev
+    container_name: md-decision-maker-backend-dev
+    ports:
+      - "8000:8000"
+    environment:
+      # Application settings
+      - APP_ENV=development
+      - LOG_LEVEL=DEBUG
+      - SERVICE_NAME=md-decision-maker-backend
+      # CORS settings for frontend
+      - ALLOWED_ORIGINS_STR=http://localhost:3000,http://localhost:3001
+      # Feature flags
+      - ENABLE_DOCS=true
+      # Authentication - override with your own password
+      - ACCESS_PASSWORD=${ACCESS_PASSWORD:-development-password}
+      # Azure configuration (to be added when needed)
+      - AZURE_FOUNDRY_ENDPOINT=${AZURE_FOUNDRY_ENDPOINT:-}
+      - AZURE_FOUNDRY_API_KEY=${AZURE_FOUNDRY_API_KEY:-}
+      # Azure App Service compatibility
+      - WEBSITES_PORT=8000
+      # Application Insights configuration
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=md-decision-maker-backend,service.version=0.1.0
+      - OTEL_TRACES_SAMPLER=parentbased_always_on
+      # Azure Key Vault configuration
+      - AZURE_KEY_VAULT_URI=${AZURE_KEY_VAULT_URI:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+    volumes:
+      # Mount app directory for hot reload
+      - ./app:/app/app:delegated
+      # Mount tests for development
+      - ./tests:/app/tests:delegated
+      # Use anonymous volume for Python cache to improve performance
+      - /app/__pycache__
+    command: [
+      "uvicorn", "app.main:app",
+      "--host", "0.0.0.0",
+      "--port", "8000",
+      "--reload",  # Enable hot reload for development
+      "--reload-dir", "/app/app"  # Watch only app directory
+    ]
+    networks:
+      - md-decision-maker-network
+    # Ensure proper signal handling in development
+    init: true
+    # Development-specific health check with longer timeout
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    # Resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Future: Add frontend service when integrating
+  # frontend:
+  #   build:
+  #     context: ../frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - md-decision-maker-network
+
+  # Future: Add observability stack for local development
+  # jaeger:
+  #   image: jaegertracing/all-in-one:1.55
+  #   container_name: md-decision-maker-jaeger
+  #   ports:
+  #     - "16686:16686"  # Jaeger UI
+  #     - "4317:4317"    # OTLP gRPC
+  #     - "4318:4318"    # OTLP HTTP
+  #   environment:
+  #     - COLLECTOR_OTLP_ENABLED=true
+  #   networks:
+  #     - md-decision-maker-network
+
+networks:
+  md-decision-maker-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.88.0.0/24  # Following Docker handbook recommendation
+
+# Volumes for persistent data (future use)
+volumes:
+  backend-data:
+    driver: local

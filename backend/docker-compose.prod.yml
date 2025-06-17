@@ -1,0 +1,83 @@
+# Production-like configuration for local testing
+# This mimics Azure App Service environment
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: md-decision-maker-backend:prod
+    container_name: md-decision-maker-backend-prod
+    ports:
+      - "8000:8000"
+    environment:
+      # Production settings
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+      - SERVICE_NAME=md-decision-maker-backend
+      # Security
+      - ACCESS_PASSWORD=${ACCESS_PASSWORD:?ACCESS_PASSWORD is required}
+      # Azure configuration
+      - AZURE_FOUNDRY_ENDPOINT=${AZURE_FOUNDRY_ENDPOINT:?AZURE_FOUNDRY_ENDPOINT is required}
+      - AZURE_FOUNDRY_API_KEY=${AZURE_FOUNDRY_API_KEY:?AZURE_FOUNDRY_API_KEY is required}
+      # Azure App Service
+      - WEBSITES_PORT=8000
+      # Application Insights
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=md-decision-maker-backend,service.version=0.1.0
+      - OTEL_TRACES_SAMPLER=parentbased_always_on
+      # Azure Key Vault
+      - AZURE_KEY_VAULT_URI=${AZURE_KEY_VAULT_URI:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      # CORS - restricted in production
+      - ALLOWED_ORIGINS_STR=${ALLOWED_ORIGINS_STR:-https://your-frontend-domain.com}
+      # Feature flags
+      - ENABLE_DOCS=false
+    # No volume mounts in production
+    networks:
+      - md-decision-maker-network
+    # Production readiness
+    init: true
+    restart: unless-stopped
+    # Stricter health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    # Resource limits matching Azure App Service B1 tier
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1.75G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.cache
+
+  # Optional: Local Azure Storage emulator for testing
+  # azurite:
+  #   image: mcr.microsoft.com/azure-storage/azurite:latest
+  #   container_name: md-decision-maker-azurite
+  #   ports:
+  #     - "10000:10000"  # Blob service
+  #     - "10001:10001"  # Queue service
+  #     - "10002:10002"  # Table service
+  #   networks:
+  #     - md-decision-maker-network
+
+networks:
+  md-decision-maker-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.88.1.0/24  # Different subnet from dev

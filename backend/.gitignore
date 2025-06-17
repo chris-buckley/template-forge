@@ -41,3 +41,6 @@ logs/
 
 # UV
 .uv/
+
+# Docker validation notes
+.docker-compose-validation-notes.md
