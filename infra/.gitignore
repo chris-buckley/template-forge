@@ -1,0 +1,45 @@
+# Bicep build outputs
+*.json
+!bicepconfig.json
+!abbreviations.json
+
+# Bicep state files
+.bicep/
+
+# Azure deployment outputs
+*.azcli
+*.azurecli
+
+# Deployment logs
+*.log
+
+# Local parameter files with secrets
+*.local.bicepparam
+*.local.json
+
+# Deployment scripts temporary files
+*.tmp
+*.temp
+
+# IDE specific files
+.vscode/
+.idea/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# PowerShell script execution policy files
+*.ps1.bak
+
+# Azure CLI cache
+.azure/
+
+# Terraform state files (in case of migration)
+*.tfstate
+*.tfstate.*
+
+# Deployment credentials
+*.pfx
+*.key
+*.pem
