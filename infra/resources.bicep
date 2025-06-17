@@ -668,6 +668,186 @@ module aiFoundryProject 'br/public:avm/res/machine-learning-services/workspace:0
   }
 }
 
+// ========== RBAC Role Definitions ==========
+module rbacRoles './modules/rbac.bicep' = {
+  name: 'rbac-roles'
+}
+
+// ========== RBAC Assignments ==========
+// Backend App Service RBAC assignments
+// Grant access to Key Vault secrets
+module backendKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'backend-keyvault-rbac'
+  params: {
+    resourceId: keyVault.outputs.resourceId
+    principalId: backendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.keyVaultSecretsUser
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow backend app to read secrets from Key Vault'
+  }
+}
+
+// Grant access to Storage Account blobs
+module backendStorageAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'backend-storage-rbac'
+  params: {
+    resourceId: storageAccount.outputs.resourceId
+    principalId: backendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.storageBlobDataContributor
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow backend app to read/write blobs in Storage Account'
+  }
+}
+
+// Grant access to pull images from Container Registry
+module backendAcrAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'backend-acr-rbac'
+  params: {
+    resourceId: containerRegistry.outputs.resourceId
+    principalId: backendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', rbacRoles.outputs.acrPull)
+    principalType: 'ServicePrincipal'
+    description: 'Allow backend app to pull images from Container Registry'
+  }
+}
+
+// Grant access to Application Insights for metrics publishing
+module backendAppInsightsAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'backend-appinsights-rbac'
+  params: {
+    resourceId: applicationInsights.outputs.resourceId
+    principalId: backendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.monitoringMetricsPublisher
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow backend app to publish metrics to Application Insights'
+  }
+}
+
+// Frontend App Service RBAC assignments
+// Grant access to pull images from Container Registry
+module frontendAcrAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'frontend-acr-rbac'
+  params: {
+    resourceId: containerRegistry.outputs.resourceId
+    principalId: frontendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', rbacRoles.outputs.acrPull)
+    principalType: 'ServicePrincipal'
+    description: 'Allow frontend app to pull images from Container Registry'
+  }
+}
+
+// Grant access to Application Insights for metrics publishing
+module frontendAppInsightsAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'frontend-appinsights-rbac'
+  params: {
+    resourceId: applicationInsights.outputs.resourceId
+    principalId: frontendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.monitoringMetricsPublisher
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow frontend app to publish metrics to Application Insights'
+  }
+}
+
+// AI Foundry Hub RBAC assignments
+// Grant access to Key Vault for storing model keys
+module aiHubKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'aihub-keyvault-rbac'
+  params: {
+    resourceId: keyVault.outputs.resourceId
+    principalId: aiFoundryHub.outputs.systemAssignedMIPrincipalId ?? ''
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.keyVaultSecretsOfficer
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow AI Hub to manage secrets in Key Vault'
+  }
+}
+
+// Grant access to Storage Account for model artifacts
+module aiHubStorageAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'aihub-storage-rbac'
+  params: {
+    resourceId: storageAccount.outputs.resourceId
+    principalId: aiFoundryHub.outputs.systemAssignedMIPrincipalId ?? ''
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.storageBlobDataContributor
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow AI Hub to read/write model artifacts in Storage Account'
+  }
+}
+
+// Grant access to Container Registry for custom environments
+module aiHubAcrAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'aihub-acr-rbac'
+  params: {
+    resourceId: containerRegistry.outputs.resourceId
+    principalId: aiFoundryHub.outputs.systemAssignedMIPrincipalId ?? ''
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', rbacRoles.outputs.acrPush)
+    principalType: 'ServicePrincipal'
+    description: 'Allow AI Hub to push/pull custom environment images'
+  }
+}
+
+// AI Foundry Project RBAC assignments
+// Grant access to Key Vault for model keys
+module aiProjectKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'aiproject-keyvault-rbac'
+  params: {
+    resourceId: keyVault.outputs.resourceId
+    principalId: aiFoundryProject.outputs.systemAssignedMIPrincipalId ?? ''
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.keyVaultSecretsUser
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow AI Project to read secrets from Key Vault'
+  }
+}
+
+// Grant backend app access to AI Foundry resources
+module backendAIHubAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'backend-aihub-rbac'
+  params: {
+    resourceId: aiFoundryHub.outputs.resourceId
+    principalId: backendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.azureMLDataScientist
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow backend app to use AI models from AI Hub'
+  }
+}
+
+module backendAIProjectAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+  name: 'backend-aiproject-rbac'
+  params: {
+    resourceId: aiFoundryProject.outputs.resourceId
+    principalId: backendApp.outputs.systemAssignedMIPrincipalId
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      rbacRoles.outputs.cognitiveServicesOpenAIUser
+    )
+    principalType: 'ServicePrincipal'
+    description: 'Allow backend app to use OpenAI models from AI Project'
+  }
+}
+
 // ========== Outputs ==========
 output appServicePlanId string = appServicePlan.outputs.resourceId
 output appServicePlanName string = appServicePlan.outputs.name

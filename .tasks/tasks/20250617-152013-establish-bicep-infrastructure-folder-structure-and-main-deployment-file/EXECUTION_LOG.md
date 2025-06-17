@@ -22,7 +22,7 @@
 | T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | complete | 2025-06-17 |
 | T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | complete | 2025-06-17 |
 | T-07 | Add AVM modules for AI Foundry Hub and Project | Infrastructure Developer | complete | 2025-06-17 |
-| T-08 | Configure RBAC assignments for all managed identities | Infrastructure Developer | todo | 2025-06-17 |
+| T-08 | Configure RBAC assignments for all managed identities | Infrastructure Developer | complete | 2025-06-17 |
 | T-09 | Create environment parameter files (main.dev.bicepparam, main.prod.bicepparam) | Infrastructure Developer | todo | 2025-06-17 |
 | T-10 | Add bicepconfig.json with module aliases and PSRule configuration | Infrastructure Developer | todo | 2025-06-17 |
 | T-11 | Create comprehensive README.md with deployment guide | Infrastructure Developer | todo | 2025-06-17 |
@@ -93,3 +93,13 @@
   - Validated with bicep build, lint, and format - no errors or warnings
   - SITREP: [07_add_avm_ai_foundry_sitrep.md](./SITREPS/07_add_avm_ai_foundry_sitrep.md)
 * 2025-06-17: T-07 signed off - AI Foundry Hub and Project modules successfully implemented
+* 2025-06-17: Starting implementation of T-08 - Configure RBAC assignments for all managed identities
+* 2025-06-17: Completed T-08 - Configured RBAC assignments for all managed identities
+  - Created centralized RBAC role definitions module (rbac.bicep)
+  - Implemented 13 RBAC assignments for all managed identities
+  - Backend App Service: Key Vault, Storage, ACR, App Insights, AI Hub/Project access
+  - Frontend App Service: ACR and App Insights access
+  - AI Foundry resources: Key Vault, Storage, and ACR access
+  - Validated with bicep build, lint, and format - minor warnings only
+  - SITREP: [08_configure_rbac_assignments_sitrep.md](./SITREPS/08_configure_rbac_assignments_sitrep.md)
+* 2025-06-17: T-08 signed off - RBAC assignments successfully configured with full handbook compliance
