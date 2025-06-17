@@ -17,7 +17,7 @@
 |---------|---------|-------|--------|--------------|
 | T-01 | Create /infra directory structure following AVM patterns | Infrastructure Developer | complete | 2025-06-17 |
 | T-02 | Create main.bicep with subscription-scoped deployment and resource group | Infrastructure Developer | complete | 2025-06-17 |
-| T-03 | Add AVM modules for App Services (frontend and backend) | Infrastructure Developer | todo | 2025-06-17 |
+| T-03 | Add AVM modules for App Services (frontend and backend) | Infrastructure Developer | complete | 2025-06-17 |
 | T-04 | Add AVM module for Container Registry with Premium SKU | Infrastructure Developer | todo | 2025-06-17 |
 | T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | todo | 2025-06-17 |
 | T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | todo | 2025-06-17 |
@@ -49,3 +49,10 @@
   - Fixed utcNow() function usage and parameter file paths
   - Validated with bicep build and lint - no errors or warnings
   - SITREP: [02_create_main_bicep_subscription_deployment_sitrep.md](./SITREPS/02_create_main_bicep_subscription_deployment_sitrep.md)
+* 2025-06-17: Starting implementation of T-03 - Add AVM modules for App Services (frontend and backend)
+* 2025-06-17: Completed T-03 - Added AVM modules for App Services (frontend and backend)
+  - Created resources.bicep file with App Service Plan and two App Services
+  - Configured Linux container hosting with proper security settings
+  - Set up system-assigned managed identities for both services
+  - Successfully validated with bicep build and lint - no errors or warnings
+  - SITREP: [03_add_avm_app_services_sitrep.md](./SITREPS/03_add_avm_app_services_sitrep.md)

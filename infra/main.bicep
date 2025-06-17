@@ -38,20 +38,19 @@ module resourceGroup 'br/public:avm/res/resources/resource-group:0.4.1' = {
 }
 
 // ========== Resources Deployment ==========
-// Resources will be deployed in future tasks (T-03 to T-08)
-// This module reference is commented out until resources.bicep is created
-/*
 module resources './resources.bicep' = {
   name: 'resources-deployment'
-  scope: az.resourceGroup(resourceGroup.outputs.name)
+  scope: az.resourceGroup(resourceGroupName)
   params: {
     environment: environment
     location: location
     projectName: projectName
     tags: allTags
   }
+  dependsOn: [
+    resourceGroup
+  ]
 }
-*/
 
 // ========== Outputs ==========
 output resourceGroupName string = resourceGroup.outputs.name
@@ -60,7 +59,11 @@ output location string = location
 output environment string = environment
 output tags object = allTags
 
+// App Service outputs
+output appServiceFrontendUrl string = resources.outputs.frontendUrl
+output appServiceBackendUrl string = resources.outputs.backendUrl
+output frontendAppName string = resources.outputs.frontendAppName
+output backendAppName string = resources.outputs.backendAppName
+
 // Future outputs will be added as resources are deployed
 // output keyVaultName string = resources.outputs.keyVaultName
-// output appServiceFrontendUrl string = resources.outputs.frontendUrl
-// output appServiceBackendUrl string = resources.outputs.backendUrl
