@@ -65,5 +65,7 @@ output appServiceBackendUrl string = resources.outputs.backendUrl
 output frontendAppName string = resources.outputs.frontendAppName
 output backendAppName string = resources.outputs.backendAppName
 
-// Future outputs will be added as resources are deployed
-// output keyVaultName string = resources.outputs.keyVaultName
+// Key Vault outputs
+output keyVaultName string = resources.outputs.keyVaultName
+output keyVaultUri string = resources.outputs.keyVaultUri
+output keyVaultId string = resources.outputs.keyVaultId

@@ -19,7 +19,13 @@ var frontendAppName = '${abbrs.appService}-${projectName}-fe-${environment}'
 var backendAppName = '${abbrs.appService}-${projectName}-be-${environment}'
 // Container Registry names must be globally unique and alphanumeric only
 // Using location suffix to ensure uniqueness while maintaining readability
-var containerRegistryName = toLower(replace('${abbrs.containerRegistry}${projectName}${environment}${substring(location, 0, 3)}', '-', ''))
+var containerRegistryName = toLower(replace(
+  '${abbrs.containerRegistry}${projectName}${environment}${substring(location, 0, 3)}',
+  '-',
+  ''
+))
+// Key Vault names must be globally unique and have character limits
+var keyVaultName = '${abbrs.keyVault}-${projectName}-${environment}'
 
 // Define SKU based on environment
 var appServicePlanSkuName = 'P1v3'
@@ -52,15 +58,17 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' =
     // Enable zone redundancy for high availability (Premium feature)
     zoneRedundancy: environment == 'prod' ? 'Enabled' : 'Disabled'
     // Geo-replication for regional affinity (Premium feature)
-    replications: environment == 'prod' ? [
-      {
-        name: 'westus2'
-        location: 'westus2'
-        regionEndpointEnabled: true
-        zoneRedundancy: 'Enabled'
-        tags: tags
-      }
-    ] : []
+    replications: environment == 'prod'
+      ? [
+          {
+            name: 'westus2'
+            location: 'westus2'
+            regionEndpointEnabled: true
+            zoneRedundancy: 'Enabled'
+            tags: tags
+          }
+        ]
+      : []
     managedIdentities: {
       systemAssigned: true
     }
@@ -71,6 +79,70 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' =
     //     categories: ['ContainerRegistryRepositoryEvents', 'ContainerRegistryLoginEvents']
     //   }
     // ]
+  }
+}
+
+// ========== Key Vault ==========
+module keyVault 'br/public:avm/res/key-vault/vault:0.10.2' = {
+  name: 'keyvault-deployment'
+  params: {
+    name: keyVaultName
+    location: location
+    tags: tags
+    // Enable RBAC authorization instead of access policies (Azure Key Vault handbook best practice)
+    enableRbacAuthorization: true
+    // Enable purge protection for production safety (BCPNFR security requirement)
+    enablePurgeProtection: true
+    // Set retention days for soft delete per handbook recommendation
+    softDeleteRetentionInDays: environment == 'prod' ? 90 : 7
+    // Enable soft delete for recovery capabilities
+    enableSoftDelete: true
+    // Enable public network access (will be restricted later with Private Endpoints)
+    publicNetworkAccess: 'Enabled'
+    // Network ACLs - secure by default, allow Azure services for managed identities
+    networkAcls: {
+      bypass: 'AzureServices'
+      defaultAction: 'Allow' // TODO: Change to 'Deny' after VNet/Private Endpoint setup
+      ipRules: []
+      virtualNetworkRules: []
+    }
+    // SKU configuration - Standard is sufficient for our needs
+    sku: 'standard'
+    // Disable key vault for deployment scenarios (not needed for our use case)
+    enableVaultForDeployment: false
+    enableVaultForDiskEncryption: false
+    enableVaultForTemplateDeployment: false
+    // No access policies needed with RBAC authorization
+    accessPolicies: []
+    // TODO: Add diagnosticSettings when Log Analytics workspace is available (T-06)
+    // diagnosticSettings: [
+    //   {
+    //     name: 'kv-diagnostics'
+    //     workspaceResourceId: logAnalytics.outputs.resourceId
+    //     storageAccountResourceId: '' // Optional: for long-term retention
+    //     eventHubAuthorizationRuleResourceId: '' // Optional: for streaming
+    //     eventHubName: '' // Optional: for streaming
+    //     metricCategories: [
+    //       {
+    //         category: 'AllMetrics'
+    //         enabled: true
+    //       }
+    //     ]
+    //     logCategoriesAndGroups: [
+    //       {
+    //         category: 'AuditEvent' // Critical for security auditing
+    //         enabled: true
+    //       }
+    //       {
+    //         category: 'AzurePolicyEvaluationDetails' // Policy compliance tracking
+    //         enabled: true
+    //       }
+    //     ]
+    //     marketplacePartnerResourceId: '' // Optional: for partner solutions
+    //   }
+    // ]
+    // Role assignments will be configured in T-08
+    // Private endpoints will be added in future infrastructure updates
   }
 }
 
@@ -110,6 +182,10 @@ module backendApp 'br/public:avm/res/web/site:0.10.0' = {
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
           value: 'https://${containerRegistry.outputs.loginServer}'
+        }
+        {
+          name: 'AZURE_KEY_VAULT_URI'
+          value: keyVault.outputs.uri
         }
       ]
       alwaysOn: true
@@ -192,3 +268,7 @@ output containerRegistryId string = containerRegistry.outputs.resourceId
 output containerRegistryName string = containerRegistry.outputs.name
 output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
 output containerRegistryManagedIdentityPrincipalId string = containerRegistry.outputs.systemAssignedMIPrincipalId
+
+output keyVaultId string = keyVault.outputs.resourceId
+output keyVaultName string = keyVault.outputs.name
+output keyVaultUri string = keyVault.outputs.uri

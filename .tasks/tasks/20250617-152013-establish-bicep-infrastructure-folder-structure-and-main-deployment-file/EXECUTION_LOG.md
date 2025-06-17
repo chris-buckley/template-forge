@@ -19,7 +19,7 @@
 | T-02 | Create main.bicep with subscription-scoped deployment and resource group | Infrastructure Developer | complete | 2025-06-17 |
 | T-03 | Add AVM modules for App Services (frontend and backend) | Infrastructure Developer | complete | 2025-06-17 |
 | T-04 | Add AVM module for Container Registry with Premium SKU | Infrastructure Developer | complete | 2025-06-17 |
-| T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | todo | 2025-06-17 |
+| T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | complete | 2025-06-17 |
 | T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | todo | 2025-06-17 |
 | T-07 | Add AVM modules for AI Foundry Hub and Project | Infrastructure Developer | todo | 2025-06-17 |
 | T-08 | Configure RBAC assignments for all managed identities | Infrastructure Developer | todo | 2025-06-17 |
@@ -62,3 +62,14 @@
   - Configured App Services to use ACR for Docker images
   - Validated with bicep build and lint - no errors or warnings
   - SITREP: [04_add_avm_container_registry_sitrep.md](./SITREPS/04_add_avm_container_registry_sitrep.md)
+* 2025-06-17: Starting implementation of T-05 - Add AVM module for Key Vault with RBAC and diagnostic settings
+* 2025-06-17: Completed T-05 - Added AVM module for Key Vault with RBAC and diagnostic settings
+  - Successfully added Key Vault module with RBAC authorization enabled
+  - Configured purge protection and soft delete retention based on environment
+  - Updated backend App Service to include Key Vault URI in app settings
+  - Added Key Vault outputs to main.bicep
+  - Enhanced configuration to follow Azure Key Vault handbook best practices
+  - Prepared comprehensive diagnostic settings for future Log Analytics integration
+  - Validated with bicep build, lint, and format - no errors or warnings
+  - Full compliance with Azure AVM Bicep handbook security requirements
+  - SITREP: [05_add_avm_key_vault_sitrep.md](./SITREPS/05_add_avm_key_vault_sitrep.md)
