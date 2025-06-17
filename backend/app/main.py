@@ -56,12 +56,53 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 # Create FastAPI application
 app = FastAPI(
     title="LLM Document Generation API",
-    description="API for generating documents using LLM with real-time progress streaming",
+    description="""## Overview
+    
+    The LLM Document Generation API provides AI-powered document processing and generation capabilities.
+    Upload your documents (PDF, Word, CSV, Excel) and describe what you want to generate - the API will
+    process your files and create new documents based on your requirements.
+    
+    ## Key Features
+    
+    - **Multi-format Support**: Process PDF, DOCX, CSV, and XLSX files
+    - **Real-time Updates**: Server-Sent Events (SSE) for live progress tracking
+    - **Asynchronous Processing**: Non-blocking document generation
+    - **Secure Access**: Password-based authentication
+    - **Comprehensive Monitoring**: OpenTelemetry instrumentation and structured logging
+    
+    ## Authentication
+    
+    All endpoints (except `/health`) require authentication using a Bearer token:
+    
+    ```
+    Authorization: Bearer YOUR_ACCESS_PASSWORD
+    ```
+    
+    ## Getting Started
+    
+    1. Check service health: `GET /health`
+    2. Upload files for processing: `POST /api/v1/generate`
+    3. Connect to SSE stream for real-time updates: `GET /api/v1/generate/{request_id}/stream`
+    4. Or poll for status: `GET /api/v1/generate/{request_id}/status`
+    
+    ## Rate Limits
+    
+    - Maximum 10 files per request
+    - Maximum 50MB per file
+    - Maximum 200MB total upload size
+    """,
     version=settings.VERSION,
     lifespan=lifespan,
     docs_url="/api/docs" if settings.ENABLE_DOCS else None,
     redoc_url="/api/redoc" if settings.ENABLE_DOCS else None,
     openapi_url="/api/openapi.json" if settings.ENABLE_DOCS else None,
+    openapi_tags=[
+        {"name": "health", "description": "Health check endpoints for monitoring service availability"},
+        {"name": "generate", "description": "Document generation endpoints for file upload and processing"},
+        {"name": "stream", "description": "Server-Sent Events endpoints for real-time progress updates"},
+        {"name": "test", "description": "Test endpoints for verifying authentication and configuration"},
+    ],
+    servers=[{"url": "/", "description": "Current server"}],
 )
 
 # Register exception handlers

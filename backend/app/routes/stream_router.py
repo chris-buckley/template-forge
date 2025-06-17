@@ -1,4 +1,8 @@
-"""Router for Server-Sent Events streaming endpoints."""
+"""Router for Server-Sent Events streaming endpoints.
+
+Provides real-time progress updates for document generation requests using SSE.
+This allows clients to receive push notifications about processing status without polling.
+"""
 
 import json
 from datetime import datetime, timezone
@@ -18,19 +22,76 @@ router = APIRouter()
 @router.get(
     "/generate/{request_id}/stream",
     summary="Stream generation progress",
-    description="Connect to Server-Sent Events stream for real-time progress updates",
+    description="""Connect to Server-Sent Events (SSE) stream for real-time progress updates.
+    
+    This endpoint establishes a persistent connection that pushes updates to the client
+    as the document generation progresses. Use an EventSource client or SSE library
+    to consume these events.
+    
+    **Connection Details**:
+    - Content-Type: text/event-stream
+    - Keep-alive: Heartbeat events sent every 15 seconds
+    - Auto-reconnect: Clients should implement reconnection logic
+    
+    **Event Types**:
+    - `connected`: Initial connection established
+    - `status`: Status change notification  
+    - `progress`: Processing step update with current/total steps
+    - `complete`: Generation finished successfully
+    - `error`: Generation failed with error details
+    - `heartbeat`: Keep-alive signal
+    
+    **Client Example (JavaScript)**:
+    ```javascript
+    const eventSource = new EventSource('/api/v1/generate/{request_id}/stream', {
+        headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+    });
+    
+    eventSource.addEventListener('progress', (event) => {
+        const data = JSON.parse(event.data);
+        console.log(`Step ${data.step}/${data.total}: ${data.message}`);
+    });
+    
+    eventSource.addEventListener('complete', (event) => {
+        console.log('Generation complete!');
+        eventSource.close();
+    });
+    ```
+    """,
     response_class=EventSourceResponse,
     responses={
         200: {
             "description": "SSE stream connected",
             "content": {
                 "text/event-stream": {
-                    "example": 'event: progress\ndata: {"step": 1, "total": 10, "message": "Processing..."}\n\n'
+                    "examples": {
+                        "connected": {
+                            "summary": "Initial connection",
+                            "value": 'event: connected\ndata: {"request_id": "123e4567-e89b-12d3-a456-426614174000", "timestamp": "2025-06-16T12:00:00Z"}\n\n',
+                        },
+                        "progress": {
+                            "summary": "Progress update",
+                            "value": 'event: progress\ndata: {"step": 3, "total": 10, "message": "Extracting text from documents..."}\n\n',
+                        },
+                        "complete": {
+                            "summary": "Completion event",
+                            "value": 'event: complete\ndata: {"status": "completed", "timestamp": "2025-06-16T12:05:00Z"}\n\n',
+                        },
+                        "error": {
+                            "summary": "Error event",
+                            "value": 'event: error\ndata: {"error": "Failed to process document", "timestamp": "2025-06-16T12:01:00Z"}\n\n',
+                        },
+                    }
                 }
             },
         },
-        404: {"description": "Request not found"},
-        401: {"description": "Unauthorized"},
+        404: {
+            "description": "Request not found",
+            "content": {
+                "application/json": {"example": {"detail": "Request 123e4567-e89b-12d3-a456-426614174000 not found"}}
+            },
+        },
+        401: {"description": "Invalid authentication credentials"},
     },
 )
 async def stream_generation_progress(request_id: str, _: None = Depends(verify_password)) -> EventSourceResponse:

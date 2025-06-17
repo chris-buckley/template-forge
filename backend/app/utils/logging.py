@@ -5,7 +5,7 @@ import json
 import logging
 import logging.config
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 from app.config import settings
@@ -135,7 +135,7 @@ class StructuredFormatter(logging.Formatter):
         """Format log record as JSON."""
         # Base log structure
         log_obj = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

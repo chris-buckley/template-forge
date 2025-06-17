@@ -92,8 +92,10 @@ async def test_generate_document_invalid_file_type(auth_headers: dict):
 
         response = await client.post("/api/v1/generate", files=files, data=data, headers=auth_headers)
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "not allowed" in response.json()["detail"]
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        error_data = response.json()
+        assert "error" in error_data
+        assert "not allowed" in error_data["error"]["message"]
 
 
 @pytest.mark.skip(reason="File content validation is not implemented in file upload flow")
@@ -127,8 +129,10 @@ async def test_generate_document_too_many_files(auth_headers: dict):
 
         response = await client.post("/api/v1/generate", files=files, data=data, headers=auth_headers)
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Maximum 10 files" in response.json()["detail"]
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        error_data = response.json()
+        assert "error" in error_data
+        assert "Maximum 10 files" in error_data["error"]["message"]
 
 
 @pytest.mark.asyncio
@@ -218,4 +222,6 @@ async def test_get_generation_status_not_found(auth_headers: dict):
         response = await client.get(f"/api/v1/generate/{fake_id}/status", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert "not found" in response.json()["detail"]
+        error_data = response.json()
+        assert "error" in error_data
+        assert "not found" in error_data["error"]["message"].lower()

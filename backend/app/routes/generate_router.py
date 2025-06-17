@@ -1,4 +1,8 @@
-"""Router for document generation endpoints."""
+"""Router for document generation endpoints.
+
+Handles file uploads and document generation requests using LLM processing.
+Provides endpoints for submitting generation requests and checking their status.
+"""
 
 from datetime import datetime, timezone
 from typing import List
@@ -22,8 +26,59 @@ router = APIRouter()
     response_model=GenerateResponse,
     status_code=status.HTTP_202_ACCEPTED,
     summary="Generate document from uploaded files",
-    description="Upload one or more files and request document generation",
-    response_description="Generation request accepted and queued for processing",
+    description="""Upload one or more files and request AI-powered document generation.
+    
+    This endpoint accepts multiple files and a natural language description of what 
+    to generate. The service processes files asynchronously and provides real-time 
+    progress updates via Server-Sent Events (SSE).
+    
+    **Authentication**: Requires Bearer token with ACCESS_PASSWORD
+    
+    **File Limits**:
+    - Maximum 10 files per request
+    - Maximum 50MB per file
+    - Maximum 200MB total upload size
+    
+    **Supported Formats**:
+    - PDF documents (.pdf)
+    - Microsoft Word documents (.docx)
+    - CSV spreadsheets (.csv)
+    - Excel spreadsheets (.xlsx)
+    
+    **Processing Flow**:
+    1. Files are uploaded and validated
+    2. Request is queued for processing
+    3. Client receives request ID and SSE stream URL
+    4. Client connects to SSE stream for real-time updates
+    5. Document is generated based on the description
+    """,
+    response_description="Generation request accepted with request ID and SSE stream URL",
+    responses={
+        202: {
+            "description": "Request accepted for processing",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "request_id": "123e4567-e89b-12d3-a456-426614174000",
+                        "status": "accepted",
+                        "stream_url": "/api/v1/generate/123e4567-e89b-12d3-a456-426614174000/stream",
+                        "files_received": [
+                            {"filename": "quarterly_report.pdf", "content_type": "application/pdf", "size": 2097152},
+                            {
+                                "filename": "financial_data.xlsx",
+                                "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                "size": 524288,
+                            },
+                        ],
+                        "created_at": "2025-06-16T12:00:00Z",
+                    }
+                }
+            },
+        },
+        400: {"description": "Invalid request (e.g., unsupported file type, file too large)"},
+        401: {"description": "Invalid authentication credentials"},
+        422: {"description": "Validation error (e.g., missing required fields)"},
+    },
 )
 async def generate_document(
     description: str = Form(
@@ -127,10 +182,57 @@ async def generate_document(
 @router.get(
     "/generate/{request_id}/status",
     summary="Get generation request status",
-    description="Get the current status of a document generation request",
+    description="""Retrieve the current status and progress of a document generation request.
+    
+    Use this endpoint to poll for the status of a generation request if you're not 
+    using the SSE stream for real-time updates. This is useful for:
+    - Checking if a request has completed
+    - Getting the current processing step
+    - Retrieving error information if the generation failed
+    
+    **Note**: For real-time updates, prefer using the SSE stream endpoint instead of polling.
+    """,
+    responses={
+        200: {
+            "description": "Current status of the generation request",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "request_id": "123e4567-e89b-12d3-a456-426614174000",
+                        "status": "processing",
+                        "current_step": 5,
+                        "total_steps": 10,
+                        "message": "Analyzing document structure...",
+                        "error": None,
+                        "completed_at": None,
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "Request not found",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Generation request not found",
+                        "request_id": "123e4567-e89b-12d3-a456-426614174000",
+                    }
+                }
+            },
+        },
+        401: {"description": "Invalid authentication credentials"},
+    },
+    tags=["generate"],
 )
 async def get_generation_status(request_id: str, _: None = Depends(verify_password)) -> dict:
-    """Get the current status of a generation request."""
+    """Get the current status of a generation request.
+
+    Args:
+        request_id: UUID of the generation request
+
+    Returns:
+        Current status information including progress and any error details
+    """
     request_status = await document_processor.get_request_status(request_id)
 
     if not request_status:

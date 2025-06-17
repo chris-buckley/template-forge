@@ -1,10 +1,12 @@
-"""Health check router."""
+"""Health check router.
+
+Provides endpoints for monitoring service health and availability."""
 
 import logging
 
 from fastapi import APIRouter, status
 from opentelemetry import trace
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.config import settings
 
@@ -12,10 +14,18 @@ logger = logging.getLogger(__name__)
 
 
 class HealthResponse(BaseModel):
-    """Health check response schema."""
+    """Health check response schema.
 
-    status: str
-    version: str
+    This response indicates whether the service is operational and provides
+    version information for deployment tracking.
+    """
+
+    status: str = Field(
+        ..., description="Service health status. Always 'ok' when healthy.", json_schema_extra={"example": "ok"}
+    )
+    version: str = Field(
+        ..., description="Current service version (semantic versioning)", json_schema_extra={"example": "0.1.0"}
+    )
 
 
 router = APIRouter(
