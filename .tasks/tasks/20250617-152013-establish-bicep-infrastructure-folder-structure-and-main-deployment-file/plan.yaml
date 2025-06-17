@@ -1,0 +1,898 @@
+###################################################################################################
+#  UNIVERSAL *SOFTWARE‑CHANGE* PLAN TEMPLATE — v1.0 (2025‑06)                                     #
+# ------------------------------------------------------------------------------------------------#
+#  ⚠️  DO NOT REMOVE THESE COMMENTS — they are the canonical instructions for filling‑out this    #
+#  file.                                                                                          #
+#                                                                                                 #
+#  PURPOSE                                                                                        #
+#  • Capture EVERYTHING needed to analyse, design, implement, test and release a CHANGE to a      #
+#    software system — bug‑fix, feature, refactor, infra tweak, documentation overhaul …          #
+#                                                                                                 #
+#  ITERATIVE COMPLETION GUIDE                                                                     #
+#  • Complete this file INCREMENTALLY as information becomes known.                               #
+#  • Empty check‑boxes [ ] or blank strings ("") mean "not done / unknown yet".                   #
+#  • Mark finished items with [x].                                                                #
+#  • Remove an entire block only if it is truly irrelevant for your change.                       #
+#                                                                                                 #
+#  STRUCTURAL GUIDELINES                                                                          #
+#  • Keep all key names and their nesting.                                                        #
+#  • Use lists ( ‑ item ) even for single entries to keep YAML shape predictable.                 #
+#  • Prefer ISO‑8601 dates (YYYY‑MM‑DD).                                                          #
+###################################################################################################
+
+# ── 0. Change Identification ────────────────────────────────────────────────────────────────
+# TODO: [x] Basic change metadata
+id:               "establish-bicep-infrastructure-folder-structure-and-main-deployment-file"           # kebab‑case identifier, e.g. "fix‑payment‑timeout"
+title:            "Establish Bicep Infrastructure Folder Structure and Main Deployment File"           # human title, e.g. "Increase payment timeout for Stripe"
+type:             "infra"           # bug‑fix | feature | refactor | infra | docs
+status:           "draft"           # draft | in‑progress | ready‑for‑review | scheduled | done
+raised_on:        "2025-06-17"           # YYYY‑MM‑DD – when the change request was created
+target_release:   "v0.1.0"           # expected release / sprint name or version
+description:      "Establish the bicep folder structure and create the main deployment file following Azure Verified Modules (AVM) best practices"           # ≤ 280 chars high‑level summary
+
+# ── 1. Context & Drivers ────────────────────────────────────────────────────────────────────
+# TODO: [x] Why are we doing this?
+context:
+  initiator:          "User/Development Team"       # person / team who requested the change
+  business_driver:    "Infrastructure standardization and deployment automation"       # revenue, cost, compliance, UX, …
+  problem_statement:  "No infrastructure as code exists for the md-decision-maker project. Azure resources need to be provisioned manually which is error-prone and not repeatable"       # what hurts today?
+  goals:
+    - "Create a standardized, AVM-compliant bicep infrastructure that can be deployed consistently across environments"                       # measurable goal #1
+    - "Enable automated deployment of all required Azure resources for the LLM Document Generation PoC"
+  success_metrics:
+    - metric:  "Successful bicep deployment"              # "p95 response time"
+      target:  "Main bicep file deploys all required resources without errors"              # "≤ 200 ms"
+    - metric:  "AVM compliance"
+      target:  "100% compliance with Azure Verified Modules best practices"
+
+# ── 2. Scope Definition ────────────────────────────────────────────────────────────────────
+# TODO: [x] Clarify what is in / out
+scope:
+  in_scope:
+    - "Create /infra directory structure following AVM patterns"                       # e.g. "payment‑service"
+    - "Create main.bicep file as deployment entry point"
+    - "Define parameter files for different environments (dev, prod)"
+    - "Configure AVM modules for App Service (2x), Container Registry, Key Vault, Application Insights, Blob Storage, and AI Foundry"
+    - "Set up proper module dependencies and resource naming conventions following CAF standards"
+    - "Configure networking with proper security groups and access restrictions"
+    - "Implement RBAC assignments for managed identities"
+    - "Set up diagnostic settings for all resources"
+  out_of_scope:
+    - "Actual deployment of resources to Azure"                       # e.g. "pricing‑engine"
+    - "CI/CD pipeline configuration"
+    - "Application code changes"
+    - "Network topology design (VNet, subnets)"
+  affected_areas:
+    - "New /infra directory at repository root"                       # modules, folders, cloud resources
+    - "Project documentation for infrastructure deployment"
+  unaffected_areas:
+    - "Backend application code (/backend)"                       # sanity list
+    - "Frontend application code (/frontend)"
+    - "Existing .tasks directory structure"
+
+# ── 3. Stakeholders & Roles ────────────────────────────────────────────────────────────────
+# TODO: [x] Who needs to know / approve / work?
+stakeholders:
+  product_owner:        "Project Owner"
+  technical_lead:       "Lead Developer"
+  project_manager:      "N/A"
+  developers:           ["Infrastructure Developer"]     # ["@alice", "@bob"]
+  qa_engineers:         []
+  devops_engineers:     ["DevOps Engineer"]
+  security_reviewer:    "Security Team"
+  external_parties:     []     # vendors, clients, regulators
+
+# ── 4. Impact Assessment ───────────────────────────────────────────────────────────────────
+# TODO: [x] What parts of the system or users will feel the change?
+impact_assessment:
+  services_impacted:
+    - "None - new infrastructure code only"                       # "payment‑service"
+  code_modules:
+    - "None - infrastructure code only"                       # "./pkg/payment/..."
+  infra_components:
+    - "New Azure Resource Group structure"                       # "AWS RDS instance xyz"
+    - "Azure App Service (2 instances - frontend and backend)"
+    - "Azure Container Registry (Premium SKU)"
+    - "Azure Key Vault (with RBAC and diagnostic settings)"
+    - "Azure Application Insights (workspace-based)"
+    - "Azure Storage Account (Blob Storage for documents)"
+    - "Azure AI Foundry (Hub and Project resources)"
+    - "Azure AI Services (for model deployments)"
+  data_migrations:      "no"     # "yes / no / TBD"
+  user_impact:          "none"     # "none", "admins only", …
+  backwards_compat:     "N/A - new infrastructure"     # "kept", "breaking API v1", …
+
+# ── 5. Risk Assessment ─────────────────────────────────────────────────────────────────────
+# TODO: [x] Identify & mitigate risks
+risks:
+  overall_level: "low"            # low | medium | high
+  items:
+    - id:           "R-01"         # "R‑01"
+      description:  "Incorrect AVM module versions could cause deployment failures"         # risk description
+      likelihood:   "low"         # low | medium | high
+      impact:       "medium"         # low | medium | high
+      mitigation:   "Pin specific AVM module versions and test thoroughly in dev environment"         # planned action
+    - id:           "R-02"
+      description:  "Naming convention conflicts with existing resources"
+      likelihood:   "low"
+      impact:       "low"
+      mitigation:   "Use unique naming prefixes and follow AVM naming standards"
+
+# ── 6. Dependencies & Constraints ──────────────────────────────────────────────────────────
+# TODO: [x] External things that can block or shape the change
+dependencies_and_constraints:
+  dependent_changes:
+    - "None - this is the foundational infrastructure setup"                       # link / id of another change
+  external_dependencies:
+    - "Azure Verified Modules public registry availability"                       # vendor API version, library release
+    - "Azure subscription with appropriate permissions"
+    - "Pre-existing Azure AI Foundry endpoint (not created by this deployment)"
+  time_constraints:    "None"      # maintenance window, legal deadline
+  resource_constraints: "Developer time for initial setup and testing"     # team capacity, budget cap
+
+# ── 7. Solution Overview ───────────────────────────────────────────────────────────────────
+# TODO: [x] High‑level technical approach
+solution_overview:
+  approach_summary: "Create a modular bicep infrastructure using Azure Verified Modules (AVM) to deploy all required Azure resources for the md-decision-maker LLM Document Generation PoC. The infrastructure will be organized following AVM standards with /infra directory containing main.bicep as the subscription-scoped entry point, environment-specific .bicepparam files, and leveraging Microsoft-supported AVM modules from the public registry. Resources will follow Cloud Adoption Framework (CAF) naming conventions and include comprehensive RBAC assignments, diagnostic settings, and security configurations. The deployment creates separate App Services for frontend/backend with VNet integration, Premium Container Registry with vulnerability scanning, Key Vault with RBAC access, Application Insights with OpenTelemetry, Blob Storage for documents, and AI Foundry hub/project for LLM capabilities."         # 1‑paragraph
+  design_documents: ["Azure-AVM-Bicep.yml handbook", "Azure Verified Modules documentation", "Cloud Adoption Framework naming standards"]         # links to ADRs, diagrams
+  architecture_diagram_ascii: |
+    ┌───────────────────────────────────────────────────────────────────┐
+    │                      Azure Subscription                             │
+    │  ┌─────────────────────────────────────────────────────────────┐  │
+    │  │                   Resource Group (rg-mdm-{env}-{location})     │  │
+    │  │  ┌───────────────┐  ┌───────────────┐  ┌──────────────┐  │  │
+    │  │  │ App Service   │  │ App Service   │  │ Container    │  │  │
+    │  │  │ (Frontend)    │  │ (Backend)     │  │ Registry     │  │  │
+    │  │  │ app-mdm-fe    │  │ app-mdm-be    │  │ cr-mdm       │  │  │
+    │  │  └──────┬───────┘  └─────┬───────┘  └─────┬──────┘  │  │
+    │  │        │ MI              │ MI             │ MI        │  │
+    │  │  ┌─────┴──────────────┴───────────────┴─────┐   │  │
+    │  │  │          Key Vault (kv-mdm-{env})              │   │  │
+    │  │  │          • Secrets  • RBAC Access             │   │  │
+    │  │  └───────────────────────────────────────┘   │  │
+    │  │                                                         │  │
+    │  │  ┌──────────────────────┐  ┌───────────────────┐  │  │
+    │  │  │ Application Insights   │  │ Blob Storage      │  │  │
+    │  │  │ (appi-mdm-{env})       │  │ (st-mdm-{env})    │  │  │
+    │  │  └──────────────────────┘  └───────────────────┘  │  │
+    │  │                                                         │  │
+    │  │  ┌─────────────────────────────────────────────┐  │  │
+    │  │  │ AI Foundry Hub (aih-mdm-{env})                 │  │  │
+    │  │  │  ┌─────────────────────────────────────┐  │  │  │
+    │  │  │  │ AI Project (aip-mdm-{env})            │  │  │  │
+    │  │  │  │  • Model Deployments                    │  │  │  │
+    │  │  │  │  • AI Services Connection              │  │  │  │
+    │  │  │  └─────────────────────────────────────┘  │  │  │
+    │  │  └─────────────────────────────────────────────┘  │  │
+    │  └─────────────────────────────────────────────────────────────┘  │
+    └───────────────────────────────────────────────────────────────────┘
+    
+    Legend: MI = Managed Identity, mdm = md-decision-maker, {env} = dev/prod
+  alternatives_considered:
+    - option:   "Custom bicep modules from scratch"
+      rationale: "Would require significant effort to implement and maintain, lacks Microsoft support"
+    - option:   "ARM templates"
+      rationale: "Less readable and maintainable than Bicep, not aligned with modern IaC practices"
+    - option:   "Terraform with AzureRM provider"
+      rationale: "Valid alternative but team has stronger Bicep expertise and AVM has better Azure integration"
+  chosen_option_rationale: "AVM provides Microsoft-supported, pre-tested modules that follow Azure Well-Architected Framework principles, reducing development time and ensuring best practices. Bicep offers native Azure integration and simpler syntax for Azure-only deployments."
+
+# ── 8. Implementation Plan ────────────────────────────────────────────────────────────────
+# TODO: [x] Concrete work items
+implementation_plan:
+  feature_flags:
+    - "N/A - infrastructure setup"                       # "enable‑stripe‑timeout‑v2"
+  tasks:
+    - id:      "T-01"              # "T‑01"
+      summary: "Create /infra directory structure following AVM patterns"
+      owner:   "Infrastructure Developer"
+      estimate: "0.5 h"            # "3 d"
+      status:  "todo"             # todo | in‑progress | done
+      details: "Create /infra with subdirectories: /modules, /environments, /scripts. Add .gitignore for bicep build outputs"
+    - id:      "T-02"
+      summary: "Create main.bicep with subscription-scoped deployment and resource group"
+      owner:   "Infrastructure Developer"
+      estimate: "1 h"
+      status:  "todo"
+      details: "Use targetScope='subscription', create resource group with CAF naming (rg-mdm-{env}-{location}), add standard tags"
+    - id:      "T-03"
+      summary: "Add AVM modules for App Services (frontend and backend)"
+      owner:   "Infrastructure Developer"
+      estimate: "2 h"
+      status:  "todo"
+      details: "Use 'br/public:avm/res/web/site' v0.4.1+, configure for Linux containers, HTTPS-only, managed identity, WEBSITES_PORT=8000 for backend, 3000 for frontend"
+    - id:      "T-04"
+      summary: "Add AVM module for Container Registry with Premium SKU"
+      owner:   "Infrastructure Developer"
+      estimate: "1 h"
+      status:  "todo"
+      details: "Use 'br/public:avm/res/container-registry/registry', enable vulnerability scanning, disable admin user, configure managed identity access"
+    - id:      "T-05"
+      summary: "Add AVM module for Key Vault with RBAC and diagnostic settings"
+      owner:   "Infrastructure Developer"
+      estimate: "1.5 h"
+      status:  "todo"
+      details: "Use 'br/public:avm/res/key-vault/vault', enable purge protection, RBAC authorization, add diagnostic settings to Log Analytics"
+    - id:      "T-06"
+      summary: "Add AVM modules for Application Insights and Storage Account"
+      owner:   "Infrastructure Developer"
+      estimate: "1.5 h"
+      status:  "todo"
+      details: "App Insights: workspace-based mode with OpenTelemetry. Storage: Standard_LRS, blob service only, lifecycle policy for 90 days"
+    - id:      "T-07"
+      summary: "Add AVM modules for AI Foundry Hub and Project"
+      owner:   "Infrastructure Developer"
+      estimate: "2 h"
+      status:  "todo"
+      details: "Deploy AI Foundry hub with AI Services connection, create project within hub, configure for GPT-4o deployment"
+    - id:      "T-08"
+      summary: "Configure RBAC assignments for all managed identities"
+      owner:   "Infrastructure Developer"
+      estimate: "1.5 h"
+      status:  "todo"
+      details: "App Services: Key Vault Secrets User, Storage Blob Data Contributor, ACR Pull. Configure cross-resource permissions"
+    - id:      "T-09"
+      summary: "Create environment parameter files (main.dev.bicepparam, main.prod.bicepparam)"
+      owner:   "Infrastructure Developer"
+      estimate: "1 h"
+      status:  "todo"
+      details: "Define environment-specific values: location, SKUs, replica counts, using new bicepparam format"
+    - id:      "T-10"
+      summary: "Add bicepconfig.json with module aliases and PSRule configuration"
+      owner:   "Infrastructure Developer"
+      estimate: "0.5 h"
+      status:  "todo"
+      details: "Configure br/public alias, enable all security rules, set up module restoration settings"
+    - id:      "T-11"
+      summary: "Create comprehensive README.md with deployment guide"
+      owner:   "Infrastructure Developer"
+      estimate: "1 h"
+      status:  "todo"
+      details: "Include prerequisites, deployment steps, parameter descriptions, troubleshooting, architecture diagram"
+    - id:      "T-12"
+      summary: "Validate with bicep build, linting, and what-if deployment"
+      owner:   "Infrastructure Developer"
+      estimate: "1 h"
+      status:  "todo"
+      details: "Run 'bicep build', 'az bicep lint', PSRule validation, and 'az deployment sub what-if' for both environments"
+
+# ── 9. Configuration & Infrastructure Changes ─────────────────────────────────────────────
+# TODO: [x] Any config, IaC or cloud resource updates
+config_and_infra_changes:
+  config_keys:
+    - key:        "AZURE_FOUNDRY_ENDPOINT"           # "PAYMENT_TIMEOUT_SEC"
+      action:     "add"           # add | modify | remove
+      default:    "https://<resource>.openai.azure.com/"           # "30"
+      envs:       ["dev", "prod"]           # ["dev", "prod"]
+    - key:        "AZURE_FOUNDRY_API_KEY"
+      action:     "add"
+      default:    "stored in Key Vault"
+      envs:       ["dev", "prod"]
+  infrastructure:
+    - description: "Create main bicep deployment file with subscription scope"          # "create SQS DLQ"
+      IaC_path:    "/infra/main.bicep"          # "./terraform/queue.tf"
+      owner:       "Infrastructure Developer"
+    - description: "Create environment-specific parameter files"
+      IaC_path:    "/infra/environments/main.dev.bicepparam, /infra/environments/main.prod.bicepparam"
+      owner:       "Infrastructure Developer"
+    - description: "Configure AVM module imports for all resources"
+      IaC_path:    "/infra/main.bicep (module references)"
+      owner:       "Infrastructure Developer"
+    - description: "Create shared modules for common configurations"
+      IaC_path:    "/infra/modules/naming.bicep, /infra/modules/tags.bicep"
+      owner:       "Infrastructure Developer"
+
+# ── 10. Testing Strategy ──────────────────────────────────────────────────────────────────
+# TODO: [x] Ensure change works & stays working
+testing_strategy:
+  levels:
+    unit:
+      coverage_target: "N/A - infrastructure code"      # "≥ 90 %"
+    integration:
+      notes: "Validate bicep deployment with 'az deployment sub what-if'"
+    e2e:
+      notes: "Deploy to dev environment and verify all resources are created correctly"
+    performance:
+      notes: "N/A - infrastructure setup"
+    security:
+      notes: "Validate RBAC assignments, Key Vault access policies, and network security settings"
+  acceptance_criteria:
+    - "Bicep files pass linting with no errors"                       # bullet list of pass/fail criteria
+    - "What-if deployment shows expected resources without errors"
+    - "All AVM modules resolve correctly from public registry"
+    - "Parameter files work for both dev and prod environments"
+    - "Documentation clearly explains deployment process"
+  test_data_preparation: "None required - infrastructure only"
+
+# ── 11. Rollout / Deployment Plan ─────────────────────────────────────────────────────────
+# TODO: [x] How will we ship it?
+rollout_plan:
+  environments:
+    - name: "dev"                 # "staging"
+      sequence: 1              # lower → higher
+    - name: "prod"
+      sequence: 2
+  rollout_strategy: "incremental - test in dev first, then prod"         # blue‑green | canary | big‑bang | toggle
+  scheduled_window: "N/A - infrastructure code only"         # "2025‑07‑10 23:00‑01:00 UTC"
+  monitoring_first_minutes: "N/A - no live deployment in this task" # who watches the charts?
+  verification_steps:
+    - "Run 'bicep build' to validate syntax"                       # "check dashboard Payment > SuccessRate"
+    - "Run 'az bicep lint' to check for issues"
+    - "Run 'az deployment sub what-if' to preview changes"
+    - "Verify all resources appear in what-if output"
+
+# ── 12. Rollback / Contingency Plan ───────────────────────────────────────────────────────
+# TODO: [x] If things go wrong …
+rollback_plan:
+  trigger_conditions:
+    - "N/A - infrastructure code only, no live deployment"                       # "p95 latency > 300 ms for 15 min"
+  rollback_steps:
+    - "Revert git commit if bicep files have errors"                       # "re‑point traffic to old task set"
+    - "Fix issues and re-test locally before committing"
+  data_restore_plan: "N/A - no data changes"
+  communication: "Notify team via standard channels if issues found"            # who tells whom?
+
+# ── 13. Observability & Monitoring ─────────────────────────────────────────────────────────
+# TODO: [x] How do we know we are healthy?
+observability:
+  metrics_to_watch:
+    - name: "N/A - infrastructure code only"
+      threshold: "N/A"            # "≥ 99.5% success"
+  alerts:
+    - name: "N/A - will be configured when resources are deployed"
+      paging_policy: "N/A"        # "sev‑1 ‑ page SRE"
+  dashboards:      ["Application Insights dashboards will be available after deployment"]          # Grafana links
+  logging_changes: "None - infrastructure setup only"          # new log fields?
+  success_criteria: "Bicep files are syntactically correct and pass all validation checks"         # condition to declare success
+
+# ── 14. Security & Compliance ─────────────────────────────────────────────────────────────
+# TODO: [x] Guard rails
+security_and_compliance:
+  considerations:
+    - "Key Vault access must use RBAC, not access policies"                       # DDoS, PII, …
+    - "App Services must have HTTPS-only enabled"
+    - "Container Registry must have admin user disabled"
+    - "Storage Account must use encryption at rest"
+    - "All resources must have appropriate tags for cost tracking"
+  checks:
+    - name: "Bicep linting for security rules"                 # "static‑analysis"
+      status: "pending"               # pending | passed
+    - name: "PSRule for Azure compliance"
+      status: "pending"
+  approvals_required:
+    - "Security team review for production deployment"                       # "Data Protection Officer"
+
+# ── 15. Documentation Updates ─────────────────────────────────────────────────────────────
+# TODO: [x] Keep docs aligned
+documentation_updates:
+  artifacts:
+    - path: "/infra/README.md"                 # "docs/api/payments.md"
+      owner: "Infrastructure Developer"
+      status: "todo"               # todo | in‑progress | done
+    - path: "Root README.md (infrastructure section)"
+      owner: "Infrastructure Developer"
+      status: "todo"
+
+# ── 16. Communication Plan ───────────────────────────────────────────────────────────────
+# TODO: [x] Keep everyone in the loop
+communication_plan:
+  channels:
+    - name: "Team chat/email"                 # "slack‑#payments"
+      purpose: "Infrastructure setup completion notification"              # "daily status"
+  release_notes_owner: "Infrastructure Developer"
+  training_materials: "Deployment guide in /infra/README.md"       # link to slides / demos
+
+# ── 17. Timeline & Milestones ─────────────────────────────────────────────────────────────
+# TODO: [x] Schedule at‑a‑glance
+timeline:
+  milestones:
+    - name: "Infrastructure code complete"                 # "code complete"
+      date: "2025-06-17"                 # YYYY‑MM‑DD
+      status: "planned"               # planned | done | slipped
+    - name: "Documentation complete"
+      date: "2025-06-17"
+      status: "planned"
+
+# ── 18. Budget & Resources ────────────────────────────────────────────────────────────────
+# TODO: [x] Cost awareness
+resources:
+  estimated_effort_person_days: "2-2.5 days"
+  cost_estimate: "$0 - infrastructure code only, no deployed resources"            # cloud cost, tooling
+  tooling_budget: "$0 - using existing tools (VS Code, Azure CLI, Bicep CLI)"
+
+# ── 19. Approvals & Sign‑off ─────────────────────────────────────────────────────────────
+# TODO: [x] Authority check
+approvals:
+  required:
+    - role: "Technical Lead"                 # "Product Owner"
+      person: "Lead Developer"
+      status: "pending"               # pending | approved
+  final_sign_off: "Pending completion"           # person / date
+
+# ── 20. Post‑Deployment Validation ───────────────────────────────────────────────────────
+# TODO: [x] Proving the change works in prod
+post_deployment_validation:
+  smoke_tests:
+    - "N/A - infrastructure code only"                       # "place $0 order"
+  user_acceptance: "Developer validation of bicep files"          # who / when
+  signoff_criteria: "Bicep files are ready for deployment"
+
+# ── 21. Post‑Deployment Review & Lessons ─────────────────────────────────────────────────
+# TODO: [x] Continuous improvement
+post_deployment_review:
+  retrospective_date: "2025-06-18"
+  lessons_learned:
+    - topic: "AVM module selection"
+      insight: "Document which AVM modules were chosen and why"
+  follow_up_actions:
+    - "Create CI/CD pipeline for automated deployment"
+    - "Set up PSRule for Azure in build pipeline"
+
+# ── 22. Change History ───────────────────────────────────────────────────────────────────
+# TODO: [x] Track edits to this plan
+change_history:
+  - date: "2025-06-17"
+    author: "Infrastructure Developer"
+    change: "Initial plan creation"
+  - date: "2025-06-17"
+    author: "Infrastructure Developer"
+    change: "Completed all sections with infrastructure details"
+
+# ── 23. Checklists (CI, Release, etc.) ───────────────────────────────────────────────────
+# TODO: [x] Handy tick‑boxes
+checklists:
+  pre_merge:
+    - "Run 'bicep build' successfully"                       # "unit tests green"
+    - "Run 'az bicep lint' with no errors"
+    - "Verify all AVM module versions are pinned"
+    - "Documentation is complete"
+  pre_deploy:
+    - "Run 'az deployment sub what-if' to preview"
+    - "Verify parameter files for target environment"
+    - "Ensure Azure subscription has required permissions"
+  post_deploy:
+    - "Verify all resources created in Azure portal"
+    - "Check Application Insights is receiving telemetry"
+    - "Validate Key Vault access policies"
+
+# ── 24. Attachments & References ─────────────────────────────────────────────────────────
+# TODO: [x] Supporting material
+attachments_and_references:
+  attachments:
+    - name: "Azure AVM Bicep Handbook"
+      path: ".tasks/docs/handbooks/Azure-AVM-Bicep.yml"
+  references:
+    - title: "Azure Verified Modules Documentation"
+      url: "https://azure.github.io/Azure-Verified-Modules/"
+      note: "Official AVM documentation and module catalog"
+    - title: "Bicep Documentation"
+      url: "https://learn.microsoft.com/azure/azure-resource-manager/bicep/"
+      note: "Microsoft's official Bicep documentation"
+    - title: "AVM Bicep Public Registry"
+      url: "https://github.com/Azure/bicep-registry-modules"
+      note: "Source repository for all AVM modules"
+    - title: "PSRule for Azure"
+      url: "https://azure.github.io/PSRule.Rules.Azure/"
+      note: "Azure infrastructure validation rules"
+
+# ── 25. Detailed Implementation Code ─────────────────────────────────────────────────────────
+# TODO: [x] Provide implementation examples
+detailed_implementation:
+  - title: "main.bicep - Subscription-scoped deployment entry point"
+    language: "bicep"
+    code: |
+      targetScope = 'subscription'
+      
+      // ========== Parameters ==========
+      @description('The environment name (dev, prod)')
+      @allowed(['dev', 'prod'])
+      param environment string
+      
+      @description('The Azure region for resource deployment')
+      param location string = 'eastus'
+      
+      @description('The project identifier')
+      param projectName string = 'mdm'
+      
+      @description('Optional tags to apply to all resources')
+      param tags object = {}
+      
+      // ========== Variables ==========
+      var abbrs = loadJsonContent('./modules/abbreviations.json')
+      var resourceGroupName = 'rg-${projectName}-${environment}-${location}'
+      var defaultTags = {
+        Environment: environment
+        Project: 'md-decision-maker'
+        ManagedBy: 'Bicep'
+        DeploymentDate: utcNow('yyyy-MM-dd')
+      }
+      var allTags = union(defaultTags, tags)
+      
+      // ========== Resource Group ==========
+      module resourceGroup 'br/public:avm/res/resources/resource-group:0.4.1' = {
+        name: 'rg-deployment'
+        params: {
+          name: resourceGroupName
+          location: location
+          tags: allTags
+        }
+      }
+      
+      // ========== Resources Deployment ==========
+      module resources './resources.bicep' = {
+        name: 'resources-deployment'
+        scope: az.resourceGroup(resourceGroup.outputs.name)
+        params: {
+          environment: environment
+          location: location
+          projectName: projectName
+          tags: allTags
+        }
+      }
+      
+      // ========== Outputs ==========
+      output resourceGroupName string = resourceGroup.outputs.name
+      output keyVaultName string = resources.outputs.keyVaultName
+      output appServiceFrontendUrl string = resources.outputs.frontendUrl
+      output appServiceBackendUrl string = resources.outputs.backendUrl
+  - title: "resources.bicep - All resources within the resource group"
+    language: "bicep"
+    code: |
+      // ========== Parameters ==========
+      param environment string
+      param location string
+      param projectName string
+      param tags object
+      
+      // ========== Variables ==========
+      var abbrs = loadJsonContent('./modules/abbreviations.json')
+      var keyVaultName = 'kv-${projectName}-${environment}'
+      var containerRegistryName = 'cr${projectName}${environment}'
+      var appInsightsName = 'appi-${projectName}-${environment}'
+      var storageAccountName = 'st${projectName}${environment}'
+      var logAnalyticsName = 'log-${projectName}-${environment}'
+      var appServicePlanName = 'asp-${projectName}-${environment}'
+      var frontendAppName = 'app-${projectName}-fe-${environment}'
+      var backendAppName = 'app-${projectName}-be-${environment}'
+      var aiHubName = 'aih-${projectName}-${environment}'
+      var aiProjectName = 'aip-${projectName}-${environment}'
+      
+      // ========== Log Analytics Workspace ==========
+      module logAnalytics 'br/public:avm/res/operational-insights/workspace:0.9.1' = {
+        name: 'log-analytics-deployment'
+        params: {
+          name: logAnalyticsName
+          location: location
+          tags: tags
+        }
+      }
+      
+      // ========== Application Insights ==========
+      module applicationInsights 'br/public:avm/res/insights/component:0.4.1' = {
+        name: 'app-insights-deployment'
+        params: {
+          name: appInsightsName
+          location: location
+          workspaceResourceId: logAnalytics.outputs.resourceId
+          tags: tags
+        }
+      }
+      
+      // ========== Storage Account ==========
+      module storageAccount 'br/public:avm/res/storage/storage-account:0.14.3' = {
+        name: 'storage-deployment'
+        params: {
+          name: storageAccountName
+          location: location
+          skuName: 'Standard_LRS'
+          kind: 'StorageV2'
+          tags: tags
+          blobServices: {
+            containers: [
+              {
+                name: 'documents'
+                publicAccess: 'None'
+              }
+            ]
+          }
+          diagnosticSettings: [
+            {
+              workspaceResourceId: logAnalytics.outputs.resourceId
+            }
+          ]
+        }
+      }
+      
+      // ========== Container Registry ==========
+      module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' = {
+        name: 'acr-deployment'
+        params: {
+          name: containerRegistryName
+          location: location
+          acrSku: 'Premium'
+          tags: tags
+          adminUserEnabled: false
+          diagnosticSettings: [
+            {
+              workspaceResourceId: logAnalytics.outputs.resourceId
+            }
+          ]
+        }
+      }
+      
+      // ========== Key Vault ==========
+      module keyVault 'br/public:avm/res/key-vault/vault:0.10.2' = {
+        name: 'keyvault-deployment'
+        params: {
+          name: keyVaultName
+          location: location
+          enableRbacAuthorization: true
+          enablePurgeProtection: true
+          tags: tags
+          diagnosticSettings: [
+            {
+              workspaceResourceId: logAnalytics.outputs.resourceId
+            }
+          ]
+        }
+      }
+      
+      // ========== App Service Plan ==========
+      module appServicePlan 'br/public:avm/res/web/serverfarm:0.3.0' = {
+        name: 'asp-deployment'
+        params: {
+          name: appServicePlanName
+          location: location
+          sku: {
+            name: 'P1v3'
+            tier: 'PremiumV3'
+            capacity: environment == 'prod' ? 2 : 1
+          }
+          kind: 'linux'
+          tags: tags
+        }
+      }
+      
+      // ========== Backend App Service ==========
+      module backendApp 'br/public:avm/res/web/site:0.10.0' = {
+        name: 'backend-app-deployment'
+        params: {
+          name: backendAppName
+          location: location
+          serverFarmResourceId: appServicePlan.outputs.resourceId
+          kind: 'app,linux,container'
+          tags: tags
+          siteConfig: {
+            linuxFxVersion: 'DOCKER|${containerRegistry.outputs.loginServer}/backend:latest'
+            appSettings: [
+              {
+                name: 'WEBSITES_PORT'
+                value: '8000'
+              }
+              {
+                name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+                value: applicationInsights.outputs.connectionString
+              }
+              {
+                name: 'AZURE_KEY_VAULT_URI'
+                value: keyVault.outputs.uri
+              }
+            ]
+            alwaysOn: true
+            ftpsState: 'Disabled'
+            minTlsVersion: '1.2'
+          }
+          httpsOnly: true
+          managedIdentity: {
+            type: 'SystemAssigned'
+          }
+        }
+      }
+      
+      // ========== Frontend App Service ==========
+      module frontendApp 'br/public:avm/res/web/site:0.10.0' = {
+        name: 'frontend-app-deployment'
+        params: {
+          name: frontendAppName
+          location: location
+          serverFarmResourceId: appServicePlan.outputs.resourceId
+          kind: 'app,linux,container'
+          tags: tags
+          siteConfig: {
+            linuxFxVersion: 'DOCKER|${containerRegistry.outputs.loginServer}/frontend:latest'
+            appSettings: [
+              {
+                name: 'WEBSITES_PORT'
+                value: '3000'
+              }
+            ]
+            alwaysOn: true
+            ftpsState: 'Disabled'
+            minTlsVersion: '1.2'
+          }
+          httpsOnly: true
+          managedIdentity: {
+            type: 'SystemAssigned'
+          }
+        }
+      }
+      
+      // ========== AI Foundry Hub ==========
+      module aiFoundryHub 'br/public:avm/res/machine-learning-services/workspace:0.10.0' = {
+        name: 'ai-foundry-hub-deployment'
+        params: {
+          name: aiHubName
+          location: location
+          sku: 'Basic'
+          kind: 'Hub'
+          tags: tags
+          managedIdentity: {
+            type: 'SystemAssigned'
+          }
+          storageAccountResourceId: storageAccount.outputs.resourceId
+          keyVaultResourceId: keyVault.outputs.resourceId
+          applicationInsightsResourceId: applicationInsights.outputs.resourceId
+        }
+      }
+      
+      // ========== RBAC Assignments ==========
+      // Backend App Service permissions
+      module backendKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+        name: 'backend-keyvault-rbac'
+        params: {
+          resourceId: keyVault.outputs.resourceId
+          principalId: backendApp.outputs.systemAssignedMIPrincipalId
+          roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/4633458b-17de-408a-b874-0445c86b69e6' // Key Vault Secrets User
+        }
+      }
+      
+      module backendStorageAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+        name: 'backend-storage-rbac'
+        params: {
+          resourceId: storageAccount.outputs.resourceId
+          principalId: backendApp.outputs.systemAssignedMIPrincipalId
+          roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe' // Storage Blob Data Contributor
+        }
+      }
+      
+      module backendAcrAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
+        name: 'backend-acr-rbac'
+        params: {
+          resourceId: containerRegistry.outputs.resourceId
+          principalId: backendApp.outputs.systemAssignedMIPrincipalId
+          roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+        }
+      }
+      
+      // ========== Outputs ==========
+      output keyVaultName string = keyVault.outputs.name
+      output containerRegistryName string = containerRegistry.outputs.name
+      output storageAccountName string = storageAccount.outputs.name
+      output frontendUrl string = 'https://${frontendApp.outputs.defaultHostname}'
+      output backendUrl string = 'https://${backendApp.outputs.defaultHostname}'
+      output aiFoundryHubName string = aiFoundryHub.outputs.name
+  - title: "main.dev.bicepparam - Development environment parameters"
+    language: "bicep"
+    code: |
+      using './main.bicep'
+      
+      param environment = 'dev'
+      param location = 'eastus'
+      param projectName = 'mdm'
+      
+      param tags = {
+        CostCenter: 'Development'
+        Owner: 'DevTeam'
+        DataClassification: 'Non-Production'
+      }
+  - title: "bicepconfig.json - Bicep configuration with AVM registry"
+    language: "json"
+    code: |
+      {
+        "experimentalFeaturesEnabled": {
+          "symbolicNameCodegen": true,
+          "extensibility": true
+        },
+        "analyzers": {
+          "core": {
+            "enabled": true,
+            "rules": {
+              "no-hardcoded-env-urls": {
+                "level": "error"
+              },
+              "secure-parameter-default": {
+                "level": "error"
+              }
+            }
+          }
+        },
+        "moduleAliases": {
+          "br": {
+            "public": {
+              "registry": "mcr.microsoft.com",
+              "modulePath": "bicep"
+            }
+          }
+        }
+      }
+  - title: "Directory structure"
+    language: "text"
+    code: |
+      /infra
+      ├── main.bicep                    # Entry point (subscription scope)
+      ├── resources.bicep               # All resources (resource group scope)
+      ├── bicepconfig.json              # Bicep configuration
+      ├── .gitignore                    # Ignore build outputs
+      ├── README.md                     # Deployment documentation
+      ├── /environments
+      │   ├── main.dev.bicepparam       # Dev environment parameters
+      │   └── main.prod.bicepparam      # Prod environment parameters
+      ├── /modules
+      │   ├── abbreviations.json        # Resource naming abbreviations
+      │   ├── naming.bicep              # Naming convention module
+      │   └── tags.bicep                # Common tags module
+      └── /scripts
+          ├── deploy.ps1                # PowerShell deployment script
+          └── validate.sh               # Bash validation script
+  - title: "deploy.ps1 - PowerShell deployment script"
+    language: "powershell"
+    code: |
+      #Requires -Version 7.0
+      #Requires -Module Az.Accounts, Az.Resources
+      
+      [CmdletBinding()]
+      param(
+          [Parameter(Mandatory)]
+          [ValidateSet('dev', 'prod')]
+          [string]$Environment,
+          
+          [Parameter()]
+          [string]$Location = 'eastus',
+          
+          [Parameter()]
+          [switch]$WhatIf
+      )
+      
+      $ErrorActionPreference = 'Stop'
+      Set-StrictMode -Version Latest
+      
+      # Ensure logged in to Azure
+      $context = Get-AzContext
+      if (-not $context) {
+          throw "Not logged in to Azure. Run 'Connect-AzAccount' first."
+      }
+      
+      Write-Host "Deploying to environment: $Environment" -ForegroundColor Green
+      Write-Host "Using subscription: $($context.Subscription.Name)" -ForegroundColor Yellow
+      
+      # Validate bicep files
+      Write-Host "Validating Bicep files..." -ForegroundColor Cyan
+      az bicep build --file main.bicep
+      if ($LASTEXITCODE -ne 0) {
+          throw "Bicep validation failed"
+      }
+      
+      # Run what-if deployment
+      $deploymentName = "mdm-$Environment-$(Get-Date -Format 'yyyyMMddHHmmss')"
+      
+      if ($WhatIf) {
+          Write-Host "Running what-if deployment..." -ForegroundColor Cyan
+          az deployment sub what-if `
+              --name $deploymentName `
+              --location $Location `
+              --template-file main.bicep `
+              --parameters "environments/main.$Environment.bicepparam"
+      }
+      else {
+          Write-Host "Creating deployment..." -ForegroundColor Cyan
+          az deployment sub create `
+              --name $deploymentName `
+              --location $Location `
+              --template-file main.bicep `
+              --parameters "environments/main.$Environment.bicepparam" `
+              --confirm-with-what-if
+          
+          if ($LASTEXITCODE -eq 0) {
+              Write-Host "Deployment completed successfully!" -ForegroundColor Green
+          }
+      }
