@@ -18,7 +18,7 @@
 | T-01 | Create /infra directory structure following AVM patterns | Infrastructure Developer | complete | 2025-06-17 |
 | T-02 | Create main.bicep with subscription-scoped deployment and resource group | Infrastructure Developer | complete | 2025-06-17 |
 | T-03 | Add AVM modules for App Services (frontend and backend) | Infrastructure Developer | complete | 2025-06-17 |
-| T-04 | Add AVM module for Container Registry with Premium SKU | Infrastructure Developer | todo | 2025-06-17 |
+| T-04 | Add AVM module for Container Registry with Premium SKU | Infrastructure Developer | complete | 2025-06-17 |
 | T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | todo | 2025-06-17 |
 | T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | todo | 2025-06-17 |
 | T-07 | Add AVM modules for AI Foundry Hub and Project | Infrastructure Developer | todo | 2025-06-17 |
@@ -56,3 +56,9 @@
   - Set up system-assigned managed identities for both services
   - Successfully validated with bicep build and lint - no errors or warnings
   - SITREP: [03_add_avm_app_services_sitrep.md](./SITREPS/03_add_avm_app_services_sitrep.md)
+* 2025-06-17: Starting implementation of T-04 - Add AVM module for Container Registry with Premium SKU
+* 2025-06-17: Completed T-04 - Added AVM module for Container Registry with Premium SKU
+  - Successfully added Container Registry module with Premium SKU for vulnerability scanning
+  - Configured App Services to use ACR for Docker images
+  - Validated with bicep build and lint - no errors or warnings
+  - SITREP: [04_add_avm_container_registry_sitrep.md](./SITREPS/04_add_avm_container_registry_sitrep.md)
