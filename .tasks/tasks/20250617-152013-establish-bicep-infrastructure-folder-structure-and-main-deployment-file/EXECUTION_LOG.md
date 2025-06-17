@@ -16,7 +16,7 @@
 | Task ID | Summary | Owner | Status | Last Updated |
 |---------|---------|-------|--------|--------------|
 | T-01 | Create /infra directory structure following AVM patterns | Infrastructure Developer | complete | 2025-06-17 |
-| T-02 | Create main.bicep with subscription-scoped deployment and resource group | Infrastructure Developer | todo | 2025-06-17 |
+| T-02 | Create main.bicep with subscription-scoped deployment and resource group | Infrastructure Developer | complete | 2025-06-17 |
 | T-03 | Add AVM modules for App Services (frontend and backend) | Infrastructure Developer | todo | 2025-06-17 |
 | T-04 | Add AVM module for Container Registry with Premium SKU | Infrastructure Developer | todo | 2025-06-17 |
 | T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | todo | 2025-06-17 |
@@ -43,3 +43,9 @@
 * 2025-06-17: Starting implementation of T-01 - Create /infra directory structure
 * 2025-06-17: Completed T-01 - Created /infra directory structure with subdirectories (environments, modules, scripts) and .gitignore file
   - SITREP: [01_create_infra_directory_structure_sitrep.md](./SITREPS/01_create_infra_directory_structure_sitrep.md)
+* 2025-06-17: Starting implementation of T-02 - Create main.bicep with subscription-scoped deployment and resource group
+* 2025-06-17: Completed T-02 - Created main.bicep with subscription-scoped deployment and resource group module
+  - Successfully created subscription-scoped main.bicep file with AVM resource group module
+  - Fixed utcNow() function usage and parameter file paths
+  - Validated with bicep build and lint - no errors or warnings
+  - SITREP: [02_create_main_bicep_subscription_deployment_sitrep.md](./SITREPS/02_create_main_bicep_subscription_deployment_sitrep.md)
