@@ -36,6 +36,10 @@ var storageAccountName = toLower(replace(
   '-',
   ''
 ))
+// AI Foundry Hub name - following naming convention
+var aiFoundryHubName = '${abbrs.machineLearningWorkspace}-hub-${projectName}-${environment}'
+// AI Foundry Project name - following naming convention
+var aiFoundryProjectName = '${abbrs.machineLearningWorkspace}-proj-${projectName}-${environment}'
 
 // Define SKU based on environment
 var appServicePlanSkuName = 'P1v3'
@@ -413,6 +417,22 @@ module backendApp 'br/public:avm/res/web/site:0.10.0' = {
           name: 'AZURE_STORAGE_CONNECTION_STRING'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.outputs.name};EndpointSuffix=core.windows.net'
         }
+        {
+          name: 'AZURE_FOUNDRY_ENDPOINT'
+          value: 'https://<TO_BE_CONFIGURED>.openai.azure.com/' // Placeholder - actual endpoint to be configured after AI Service deployment
+        }
+        {
+          name: 'AZURE_FOUNDRY_OPENAI_DEPLOYMENT'
+          value: 'gpt-4o-${environment}' // Deployment name to be created in AI Foundry
+        }
+        {
+          name: 'AZURE_AI_HUB_NAME'
+          value: aiFoundryHub.outputs.name
+        }
+        {
+          name: 'AZURE_AI_PROJECT_NAME'
+          value: aiFoundryProject.outputs.name
+        }
       ]
       alwaysOn: true
       ftpsState: 'Disabled'
@@ -476,6 +496,178 @@ module frontendApp 'br/public:avm/res/web/site:0.10.0' = {
   }
 }
 
+// ========== AI Foundry Hub ==========
+module aiFoundryHub 'br/public:avm/res/machine-learning-services/workspace:0.10.0' = {
+  name: 'ai-foundry-hub-deployment'
+  params: {
+    name: aiFoundryHubName
+    location: location
+    tags: tags
+    // Hub configuration
+    kind: 'Hub'
+    sku: 'Basic'
+    // Enable system-assigned managed identity
+    managedIdentities: {
+      systemAssigned: true
+    }
+    // Associated resources for the hub
+    associatedStorageAccountResourceId: storageAccount.outputs.resourceId
+    associatedKeyVaultResourceId: keyVault.outputs.resourceId
+    associatedApplicationInsightsResourceId: applicationInsights.outputs.resourceId
+    // Public network access settings
+    publicNetworkAccess: 'Enabled' // TODO: Restrict after VNet/Private Endpoint setup
+    // Workspace settings
+    description: 'AI Foundry Hub for md-decision-maker LLM Document Generation'
+    // Container registry association for custom environments
+    associatedContainerRegistryResourceId: containerRegistry.outputs.resourceId
+    // High business impact workspace for compliance
+    hbiWorkspace: environment == 'prod' ? true : false
+    // Diagnostic settings
+    diagnosticSettings: [
+      {
+        name: 'ai-hub-diagnostics'
+        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        logCategoriesAndGroups: [
+          {
+            category: 'AmlComputeClusterEvent'
+            enabled: true
+          }
+          {
+            category: 'AmlComputeClusterNodeEvent'
+            enabled: true
+          }
+          {
+            category: 'AmlComputeJobEvent'
+            enabled: true
+          }
+          {
+            category: 'AmlComputeCpuGpuUtilization'
+            enabled: true
+          }
+          {
+            category: 'AmlRunStatusChangedEvent'
+            enabled: true
+          }
+          {
+            category: 'ModelsChangeEvent'
+            enabled: true
+          }
+          {
+            category: 'ModelsReadEvent'
+            enabled: true
+          }
+          {
+            category: 'ModelsActionEvent'
+            enabled: true
+          }
+          {
+            category: 'DeploymentReadEvent'
+            enabled: true
+          }
+          {
+            category: 'DeploymentEventACI'
+            enabled: true
+          }
+          {
+            category: 'DeploymentEventAKS'
+            enabled: true
+          }
+        ]
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+            enabled: true
+          }
+        ]
+      }
+    ]
+  }
+}
+
+// ========== AI Foundry Project ==========
+module aiFoundryProject 'br/public:avm/res/machine-learning-services/workspace:0.10.0' = {
+  name: 'ai-foundry-project-deployment'
+  params: {
+    name: aiFoundryProjectName
+    location: location
+    tags: tags
+    // Project configuration
+    kind: 'Project'
+    sku: 'Basic'
+    // Enable system-assigned managed identity
+    managedIdentities: {
+      systemAssigned: true
+    }
+    // Link to the hub workspace
+    hubResourceId: aiFoundryHub.outputs.resourceId
+    // Public network access settings - inherits from hub
+    publicNetworkAccess: 'Enabled' // TODO: Restrict after VNet/Private Endpoint setup
+    // Project settings
+    description: 'AI Foundry Project for md-decision-maker document generation'
+    // High business impact workspace for compliance (inherit from hub)
+    hbiWorkspace: environment == 'prod' ? true : false
+    // Diagnostic settings
+    diagnosticSettings: [
+      {
+        name: 'ai-project-diagnostics'
+        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        logCategoriesAndGroups: [
+          {
+            category: 'AmlComputeClusterEvent'
+            enabled: true
+          }
+          {
+            category: 'AmlComputeClusterNodeEvent'
+            enabled: true
+          }
+          {
+            category: 'AmlComputeJobEvent'
+            enabled: true
+          }
+          {
+            category: 'AmlComputeCpuGpuUtilization'
+            enabled: true
+          }
+          {
+            category: 'AmlRunStatusChangedEvent'
+            enabled: true
+          }
+          {
+            category: 'ModelsChangeEvent'
+            enabled: true
+          }
+          {
+            category: 'ModelsReadEvent'
+            enabled: true
+          }
+          {
+            category: 'ModelsActionEvent'
+            enabled: true
+          }
+          {
+            category: 'DeploymentReadEvent'
+            enabled: true
+          }
+          {
+            category: 'DeploymentEventACI'
+            enabled: true
+          }
+          {
+            category: 'DeploymentEventAKS'
+            enabled: true
+          }
+        ]
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+            enabled: true
+          }
+        ]
+      }
+    ]
+  }
+}
+
 // ========== Outputs ==========
 output appServicePlanId string = appServicePlan.outputs.resourceId
 output appServicePlanName string = appServicePlan.outputs.name
@@ -510,3 +702,8 @@ output applicationInsightsInstrumentationKey string = applicationInsights.output
 output storageAccountId string = storageAccount.outputs.resourceId
 output storageAccountName string = storageAccount.outputs.name
 output storageAccountPrimaryBlobEndpoint string = storageAccount.outputs.primaryBlobEndpoint
+
+output aiFoundryHubId string = aiFoundryHub.outputs.resourceId
+output aiFoundryHubName string = aiFoundryHub.outputs.name
+output aiFoundryProjectId string = aiFoundryProject.outputs.resourceId
+output aiFoundryProjectName string = aiFoundryProject.outputs.name

@@ -21,7 +21,7 @@
 | T-04 | Add AVM module for Container Registry with Premium SKU | Infrastructure Developer | complete | 2025-06-17 |
 | T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | complete | 2025-06-17 |
 | T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | complete | 2025-06-17 |
-| T-07 | Add AVM modules for AI Foundry Hub and Project | Infrastructure Developer | todo | 2025-06-17 |
+| T-07 | Add AVM modules for AI Foundry Hub and Project | Infrastructure Developer | complete | 2025-06-17 |
 | T-08 | Configure RBAC assignments for all managed identities | Infrastructure Developer | todo | 2025-06-17 |
 | T-09 | Create environment parameter files (main.dev.bicepparam, main.prod.bicepparam) | Infrastructure Developer | todo | 2025-06-17 |
 | T-10 | Add bicepconfig.json with module aliases and PSRule configuration | Infrastructure Developer | todo | 2025-06-17 |
@@ -83,3 +83,13 @@
   - Validated with bicep build, lint, and format - no errors or warnings
   - Full compliance with Azure monitoring and storage best practices
   - SITREP: [06_add_avm_monitoring_storage_sitrep.md](./SITREPS/06_add_avm_monitoring_storage_sitrep.md)
+* 2025-06-17: Starting implementation of T-07 - Add AVM modules for AI Foundry Hub and Project
+* 2025-06-17: Completed T-07 - Added AVM modules for AI Foundry Hub and Project
+  - Successfully added AI Foundry Hub module with Basic SKU and hub configuration
+  - Added AI Foundry Project module linked to the Hub
+  - Configured comprehensive diagnostic settings for AI-related events
+  - Updated backend App Service with AI Foundry configuration placeholders
+  - Added outputs for AI Foundry resources to both resources.bicep and main.bicep
+  - Validated with bicep build, lint, and format - no errors or warnings
+  - SITREP: [07_add_avm_ai_foundry_sitrep.md](./SITREPS/07_add_avm_ai_foundry_sitrep.md)
+* 2025-06-17: T-07 signed off - AI Foundry Hub and Project modules successfully implemented

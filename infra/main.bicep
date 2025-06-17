@@ -82,3 +82,9 @@ output applicationInsightsConnectionString string = resources.outputs.applicatio
 // Storage outputs
 output storageAccountName string = resources.outputs.storageAccountName
 output storageAccountPrimaryBlobEndpoint string = resources.outputs.storageAccountPrimaryBlobEndpoint
+
+// AI Foundry outputs
+output aiFoundryHubName string = resources.outputs.aiFoundryHubName
+output aiFoundryHubId string = resources.outputs.aiFoundryHubId
+output aiFoundryProjectName string = resources.outputs.aiFoundryProjectName
+output aiFoundryProjectId string = resources.outputs.aiFoundryProjectId
