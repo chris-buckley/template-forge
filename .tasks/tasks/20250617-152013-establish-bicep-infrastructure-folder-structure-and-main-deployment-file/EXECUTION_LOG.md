@@ -20,7 +20,7 @@
 | T-03 | Add AVM modules for App Services (frontend and backend) | Infrastructure Developer | complete | 2025-06-17 |
 | T-04 | Add AVM module for Container Registry with Premium SKU | Infrastructure Developer | complete | 2025-06-17 |
 | T-05 | Add AVM module for Key Vault with RBAC and diagnostic settings | Infrastructure Developer | complete | 2025-06-17 |
-| T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | todo | 2025-06-17 |
+| T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | complete | 2025-06-17 |
 | T-07 | Add AVM modules for AI Foundry Hub and Project | Infrastructure Developer | todo | 2025-06-17 |
 | T-08 | Configure RBAC assignments for all managed identities | Infrastructure Developer | todo | 2025-06-17 |
 | T-09 | Create environment parameter files (main.dev.bicepparam, main.prod.bicepparam) | Infrastructure Developer | todo | 2025-06-17 |
@@ -73,3 +73,13 @@
   - Validated with bicep build, lint, and format - no errors or warnings
   - Full compliance with Azure AVM Bicep handbook security requirements
   - SITREP: [05_add_avm_key_vault_sitrep.md](./SITREPS/05_add_avm_key_vault_sitrep.md)
+* 2025-06-17: Starting implementation of T-06 - Add AVM modules for Application Insights and Storage Account
+* 2025-06-17: Completed T-06 - Added AVM modules for Application Insights and Storage Account
+  - Successfully added Log Analytics Workspace module for centralized logging
+  - Added Application Insights module in workspace-based mode with OpenTelemetry support
+  - Added Storage Account module with blob containers and lifecycle management policies
+  - Updated Container Registry and Key Vault with diagnostic settings
+  - Configured App Services with Application Insights connection strings
+  - Validated with bicep build, lint, and format - no errors or warnings
+  - Full compliance with Azure monitoring and storage best practices
+  - SITREP: [06_add_avm_monitoring_storage_sitrep.md](./SITREPS/06_add_avm_monitoring_storage_sitrep.md)

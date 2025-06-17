@@ -69,3 +69,16 @@ output backendAppName string = resources.outputs.backendAppName
 output keyVaultName string = resources.outputs.keyVaultName
 output keyVaultUri string = resources.outputs.keyVaultUri
 output keyVaultId string = resources.outputs.keyVaultId
+
+// Container Registry outputs
+output containerRegistryName string = resources.outputs.containerRegistryName
+output containerRegistryLoginServer string = resources.outputs.containerRegistryLoginServer
+
+// Monitoring outputs
+output logAnalyticsWorkspaceName string = resources.outputs.logAnalyticsWorkspaceName
+output applicationInsightsName string = resources.outputs.applicationInsightsName
+output applicationInsightsConnectionString string = resources.outputs.applicationInsightsConnectionString
+
+// Storage outputs
+output storageAccountName string = resources.outputs.storageAccountName
+output storageAccountPrimaryBlobEndpoint string = resources.outputs.storageAccountPrimaryBlobEndpoint

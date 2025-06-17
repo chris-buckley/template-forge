@@ -26,6 +26,16 @@ var containerRegistryName = toLower(replace(
 ))
 // Key Vault names must be globally unique and have character limits
 var keyVaultName = '${abbrs.keyVault}-${projectName}-${environment}'
+// Log Analytics workspace name
+var logAnalyticsWorkspaceName = '${abbrs.logAnalyticsWorkspace}-${projectName}-${environment}'
+// Application Insights name
+var applicationInsightsName = '${abbrs.applicationInsights}-${projectName}-${environment}'
+// Storage Account name must be globally unique, lowercase alphanumeric only, max 24 chars
+var storageAccountName = toLower(replace(
+  substring('${abbrs.storageAccount}${projectName}${environment}${substring(location, 0, 3)}', 0, 24),
+  '-',
+  ''
+))
 
 // Define SKU based on environment
 var appServicePlanSkuName = 'P1v3'
@@ -33,6 +43,190 @@ var appServicePlanSkuCapacity = environment == 'prod' ? 2 : 1
 
 // Container Registry configuration
 var containerRegistrySkuName = 'Premium' // Premium SKU for vulnerability scanning
+
+// ========== Log Analytics Workspace ==========
+module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0.9.1' = {
+  name: 'log-analytics-deployment'
+  params: {
+    name: logAnalyticsWorkspaceName
+    location: location
+    tags: tags
+    // Set retention based on environment
+    dataRetention: environment == 'prod' ? 90 : 30
+    // Enable ingestion for Application Insights
+    useResourcePermissions: true
+    // Configure daily cap to control costs
+    dailyQuotaGb: environment == 'prod' ? 50 : 10
+    // Enable public network access (will be restricted later with Private Endpoints)
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    // Managed identity for future integrations
+    managedIdentities: {
+      systemAssigned: true
+    }
+  }
+}
+
+// ========== Application Insights ==========
+module applicationInsights 'br/public:avm/res/insights/component:0.4.1' = {
+  name: 'app-insights-deployment'
+  params: {
+    name: applicationInsightsName
+    location: location
+    tags: tags
+    // Workspace-based mode for unified observability
+    workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+    // Application type for proper categorization
+    applicationType: 'web'
+    // Request type for monitoring
+    kind: 'web'
+    // Enable public network access (will be restricted later with Private Endpoints)
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    // Retention period inherits from Log Analytics workspace
+    retentionInDays: environment == 'prod' ? 90 : 30
+    // Disable legacy Application Insights features
+    disableIpMasking: false
+    // Sampling settings for cost control
+    samplingPercentage: environment == 'prod' ? 100 : 100 // 100% for now, can be adjusted
+  }
+}
+
+// ========== Storage Account ==========
+module storageAccount 'br/public:avm/res/storage/storage-account:0.14.3' = {
+  name: 'storage-deployment'
+  params: {
+    name: storageAccountName
+    location: location
+    tags: tags
+    // Storage account configuration
+    skuName: 'Standard_LRS' // Locally redundant storage for cost optimization
+    kind: 'StorageV2'
+    // Access tier for blob storage
+    accessTier: 'Hot'
+    // Enable HTTPS-only traffic
+    supportsHttpsTrafficOnly: true
+    // Minimum TLS version
+    minimumTlsVersion: 'TLS1_2'
+    // Allow public blob access (will be restricted via container settings)
+    allowBlobPublicAccess: false
+    // Allow shared key access (will migrate to Azure AD later)
+    allowSharedKeyAccess: true
+    // Network access configuration
+    publicNetworkAccess: 'Enabled'
+    networkAcls: {
+      defaultAction: 'Allow' // TODO: Change to 'Deny' after VNet/Private Endpoint setup
+      bypass: 'AzureServices'
+      ipRules: []
+      virtualNetworkRules: []
+    }
+    // Enable soft delete for blob recovery
+    blobServices: {
+      deleteRetentionPolicyEnabled: true
+      deleteRetentionPolicyDays: 7
+      containerDeleteRetentionPolicyEnabled: true
+      containerDeleteRetentionPolicyDays: 7
+      // Create containers for document storage
+      containers: [
+        {
+          name: 'documents'
+          publicAccess: 'None'
+          metadata: {
+            purpose: 'LLM document storage'
+            environment: environment
+          }
+        }
+        {
+          name: 'temp-uploads'
+          publicAccess: 'None'
+          metadata: {
+            purpose: 'Temporary upload storage'
+            environment: environment
+          }
+        }
+      ]
+    }
+    // Lifecycle management for cost optimization
+    managementPolicyRules: [
+      {
+        enabled: true
+        name: 'delete-old-temp-uploads'
+        type: 'Lifecycle'
+        definition: {
+          actions: {
+            baseBlob: {
+              delete: {
+                daysAfterModificationGreaterThan: 7
+              }
+            }
+          }
+          filters: {
+            blobTypes: [
+              'blockBlob'
+            ]
+            prefixMatch: [
+              'temp-uploads/'
+            ]
+          }
+        }
+      }
+      {
+        enabled: true
+        name: 'move-to-cool-tier'
+        type: 'Lifecycle'
+        definition: {
+          actions: {
+            baseBlob: {
+              tierToCool: {
+                daysAfterModificationGreaterThan: 30
+              }
+            }
+          }
+          filters: {
+            blobTypes: [
+              'blockBlob'
+            ]
+            prefixMatch: [
+              'documents/'
+            ]
+          }
+        }
+      }
+    ]
+    // Diagnostic settings
+    diagnosticSettings: [
+      {
+        name: 'storage-diagnostics'
+        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        storageAccountResourceId: '' // Self-logging not recommended
+        logCategoriesAndGroups: [
+          {
+            category: 'StorageRead'
+            enabled: true
+          }
+          {
+            category: 'StorageWrite'
+            enabled: true
+          }
+          {
+            category: 'StorageDelete'
+            enabled: true
+          }
+        ]
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+            enabled: true
+          }
+        ]
+      }
+    ]
+    // Managed identity for future integrations
+    managedIdentities: {
+      systemAssigned: true
+    }
+  }
+}
 
 // ========== Container Registry ==========
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' = {
@@ -72,13 +266,29 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' =
     managedIdentities: {
       systemAssigned: true
     }
-    // TODO: Add diagnosticSettings when Log Analytics workspace is available (T-06)
-    // diagnosticSettings: [
-    //   {
-    //     workspaceResourceId: logAnalytics.outputs.resourceId
-    //     categories: ['ContainerRegistryRepositoryEvents', 'ContainerRegistryLoginEvents']
-    //   }
-    // ]
+    // Diagnostic settings for monitoring and auditing
+    diagnosticSettings: [
+      {
+        name: 'acr-diagnostics'
+        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        logCategoriesAndGroups: [
+          {
+            category: 'ContainerRegistryRepositoryEvents'
+            enabled: true
+          }
+          {
+            category: 'ContainerRegistryLoginEvents'
+            enabled: true
+          }
+        ]
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+            enabled: true
+          }
+        ]
+      }
+    ]
   }
 }
 
@@ -114,33 +324,29 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.10.2' = {
     enableVaultForTemplateDeployment: false
     // No access policies needed with RBAC authorization
     accessPolicies: []
-    // TODO: Add diagnosticSettings when Log Analytics workspace is available (T-06)
-    // diagnosticSettings: [
-    //   {
-    //     name: 'kv-diagnostics'
-    //     workspaceResourceId: logAnalytics.outputs.resourceId
-    //     storageAccountResourceId: '' // Optional: for long-term retention
-    //     eventHubAuthorizationRuleResourceId: '' // Optional: for streaming
-    //     eventHubName: '' // Optional: for streaming
-    //     metricCategories: [
-    //       {
-    //         category: 'AllMetrics'
-    //         enabled: true
-    //       }
-    //     ]
-    //     logCategoriesAndGroups: [
-    //       {
-    //         category: 'AuditEvent' // Critical for security auditing
-    //         enabled: true
-    //       }
-    //       {
-    //         category: 'AzurePolicyEvaluationDetails' // Policy compliance tracking
-    //         enabled: true
-    //       }
-    //     ]
-    //     marketplacePartnerResourceId: '' // Optional: for partner solutions
-    //   }
-    // ]
+    // Diagnostic settings for security auditing and monitoring
+    diagnosticSettings: [
+      {
+        name: 'kv-diagnostics'
+        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+            enabled: true
+          }
+        ]
+        logCategoriesAndGroups: [
+          {
+            category: 'AuditEvent' // Critical for security auditing
+            enabled: true
+          }
+          {
+            category: 'AzurePolicyEvaluationDetails' // Policy compliance tracking
+            enabled: true
+          }
+        ]
+      }
+    ]
     // Role assignments will be configured in T-08
     // Private endpoints will be added in future infrastructure updates
   }
@@ -184,8 +390,28 @@ module backendApp 'br/public:avm/res/web/site:0.10.0' = {
           value: 'https://${containerRegistry.outputs.loginServer}'
         }
         {
+          name: 'REACT_APP_APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: applicationInsights.outputs.connectionString
+        }
+        {
           name: 'AZURE_KEY_VAULT_URI'
           value: keyVault.outputs.uri
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: applicationInsights.outputs.connectionString
+        }
+        {
+          name: 'OTEL_RESOURCE_ATTRIBUTES'
+          value: 'service.name=${backendAppName},service.version=1.0.0,deployment.environment=${environment}'
+        }
+        {
+          name: 'OTEL_TRACES_SAMPLER'
+          value: 'parentbased_always_on'
+        }
+        {
+          name: 'AZURE_STORAGE_CONNECTION_STRING'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.outputs.name};EndpointSuffix=core.windows.net'
         }
       ]
       alwaysOn: true
@@ -272,3 +498,15 @@ output containerRegistryManagedIdentityPrincipalId string = containerRegistry.ou
 output keyVaultId string = keyVault.outputs.resourceId
 output keyVaultName string = keyVault.outputs.name
 output keyVaultUri string = keyVault.outputs.uri
+
+output logAnalyticsWorkspaceId string = logAnalyticsWorkspace.outputs.resourceId
+output logAnalyticsWorkspaceName string = logAnalyticsWorkspace.outputs.name
+
+output applicationInsightsId string = applicationInsights.outputs.resourceId
+output applicationInsightsName string = applicationInsights.outputs.name
+output applicationInsightsConnectionString string = applicationInsights.outputs.connectionString
+output applicationInsightsInstrumentationKey string = applicationInsights.outputs.instrumentationKey
+
+output storageAccountId string = storageAccount.outputs.resourceId
+output storageAccountName string = storageAccount.outputs.name
+output storageAccountPrimaryBlobEndpoint string = storageAccount.outputs.primaryBlobEndpoint
