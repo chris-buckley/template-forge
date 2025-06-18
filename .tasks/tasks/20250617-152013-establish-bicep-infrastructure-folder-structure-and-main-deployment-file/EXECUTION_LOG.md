@@ -23,7 +23,7 @@
 | T-06 | Add AVM modules for Application Insights and Storage Account | Infrastructure Developer | complete | 2025-06-17 |
 | T-07 | Add AVM modules for AI Foundry Hub and Project | Infrastructure Developer | complete | 2025-06-17 |
 | T-08 | Configure RBAC assignments for all managed identities | Infrastructure Developer | complete | 2025-06-17 |
-| T-09 | Create environment parameter files (main.dev.bicepparam, main.prod.bicepparam) | Infrastructure Developer | todo | 2025-06-17 |
+| T-09 | Create environment parameter files (main.dev.bicepparam, main.prod.bicepparam) | Infrastructure Developer | complete | 2025-06-18 |
 | T-10 | Add bicepconfig.json with module aliases and PSRule configuration | Infrastructure Developer | todo | 2025-06-17 |
 | T-11 | Create comprehensive README.md with deployment guide | Infrastructure Developer | todo | 2025-06-17 |
 | T-12 | Validate with bicep build, linting, and what-if deployment | Infrastructure Developer | todo | 2025-06-17 |
@@ -103,3 +103,12 @@
   - Validated with bicep build, lint, and format - minor warnings only
   - SITREP: [08_configure_rbac_assignments_sitrep.md](./SITREPS/08_configure_rbac_assignments_sitrep.md)
 * 2025-06-17: T-08 signed off - RBAC assignments successfully configured with full handbook compliance
+* 2025-06-18: Starting implementation of T-09 - Create environment parameter files
+* 2025-06-18: Completed T-09 - Created environment parameter files for dev and prod
+  - Created main.prod.bicepparam with production-specific tags and configurations
+  - Enhanced main.dev.bicepparam with additional tags for consistency
+  - Created validation scripts (validate-params.sh and .ps1) to test parameter files
+  - Created deployment example scripts (deploy-example.sh and .ps1) with step-by-step instructions
+  - Validated both parameter files with bicep build-params - no errors
+  - SITREP: [09_create_environment_parameter_files_sitrep.md](./SITREPS/09_create_environment_parameter_files_sitrep.md)
+* 2025-06-18: T-09 signed off - Environment parameter files successfully created and validated
