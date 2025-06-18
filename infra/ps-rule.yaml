@@ -1,0 +1,85 @@
+# PSRule configuration for Azure Infrastructure validation
+# This configuration enables Azure Well-Architected Framework rules and best practices
+
+# Rule configuration
+rule:
+  include:
+    - 'Azure.Resource.UseTags'
+    - 'Azure.Deployment.OutputSecretValue'
+    - 'Azure.Deployment.AdminUsername'
+    - 'Azure.Deployment.SecureParameter'
+    - 'Azure.Deployment.SecureValue'
+    - 'Azure.Template.DefineParameters'
+    - 'Azure.Template.ParameterFile'
+    - 'Azure.Template.UseLocationParameter'
+    - 'Azure.Template.LocationDefault'  # Per handbook requirement
+    - 'Azure.Template.ValidSecretRef'
+    - 'Azure.KeyVault.PurgeProtect'
+    - 'Azure.KeyVault.SoftDelete'
+    - 'Azure.AppService.UseHTTPS'
+    - 'Azure.AppService.MinTLS'
+    - 'Azure.ACR.AdminUser'
+    - 'Azure.ACR.MinSku'
+    - 'Azure.Storage.SecureTransfer'
+    - 'Azure.Storage.BlobPublicAccess'
+    - 'Azure.AI.PrivateEndpoints'
+    - 'Azure.AppInsights.Workspace'
+    - 'Azure.Resource.AllowedRegions'
+    
+  exclude: []
+  
+  configuration:
+    # Configure allowed regions
+    Azure_AllowedRegions:
+      - 'eastus'
+      - 'eastus2'
+      - 'westus2'
+      - 'westus3'
+      - 'centralus'
+      - 'northeurope'
+      - 'westeurope'
+    
+    # Configure minimum TLS version
+    Azure_MinTLSVersion: '1.2'
+    
+    # Require specific tags (per AVM handbook)
+    Azure_RequiredTags:
+      - 'stack'
+      - 'env'
+      - 'owner'
+      - 'costCenter'
+      - 'Project'  # Additional project-specific tag
+      - 'DeploymentDate'  # Additional for tracking
+    
+    # Enable Bicep file expansion for PSRule
+    AZURE_BICEP_FILE_EXPANSION: true
+
+# Input configuration
+input:
+  pathIgnore:
+    - '**/*.json'  # Ignore compiled ARM templates
+    - '**/modules/abbreviations.json'  # Ignore abbreviations file
+    - '**/environments/*.json'  # Ignore parameter JSON files
+
+# Output configuration
+output:
+  culture:
+    - 'en-US'
+
+# Execution options
+execution:
+  languageMode: 'ConstrainedLanguage'
+  inconclusiveWarning: false
+  notProcessedWarning: true
+
+# Logging options
+logging:
+  limitVerbose:
+    - 'PSRule.Rules.Azure'
+  limitDebug:
+    - 'PSRule.Rules.Azure'
+
+# Suppression configuration for known exceptions
+suppression:
+  Azure.Resource.UseTags:
+    - 'Microsoft.Resources/deployments'  # Deployments don't need tags

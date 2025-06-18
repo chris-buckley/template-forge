@@ -1,11 +1,15 @@
 {
   "experimentalFeaturesEnabled": {
     "symbolicNameCodegen": true,
-    "extensibility": true
+    "extensibility": true,
+    "userDefinedFunctions": false,
+    "resourceDerivedTypes": false,
+    "assertions": true
   },
   "analyzers": {
     "core": {
       "enabled": true,
+      "verbose": false,
       "rules": {
         "no-hardcoded-env-urls": {
           "level": "error"
@@ -27,6 +31,45 @@
         },
         "simplify-interpolation": {
           "level": "warning"
+        },
+        "secure-secrets-in-params": {
+          "level": "error"
+        },
+        "use-secure-value-for-secure-inputs": {
+          "level": "error"
+        },
+        "admin-username-should-not-be-literal": {
+          "level": "error"
+        },
+        "explicit-values-for-loc-params": {
+          "level": "warning"
+        },
+        "no-hardcoded-location": {
+          "level": "warning"
+        },
+        "no-loc-expr-outside-params": {
+          "level": "warning"
+        },
+        "use-parent-property": {
+          "level": "warning"
+        },
+        "use-resource-id-functions": {
+          "level": "warning"
+        },
+        "use-safe-access": {
+          "level": "info"
+        },
+        "outputs-should-not-contain-secrets": {
+          "level": "error"
+        },
+        "use-recent-api-versions": {
+          "level": "warning"
+        },
+        "use-stable-vm-image": {
+          "level": "warning"
+        },
+        "prefer-unquoted-property-names": {
+          "level": "info"
         }
       }
     }
@@ -38,5 +81,54 @@
         "modulePath": "bicep"
       }
     }
+  },
+  "implicitDependency": {
+    "enabled": true
+  },
+  "restore": {
+    "enabled": true,
+    "force": false,
+    "branchSource": "main"
+  },
+
+  "cloud": {
+    "currentProfile": "AzureCloud",
+    "profiles": {
+      "AzureCloud": {
+        "resourceManagerEndpoint": "https://management.azure.com",
+        "activeDirectoryAuthority": "https://login.microsoftonline.com"
+      }
+    },
+    "credentialPrecedence": [
+      "AzureCLI",
+      "AzurePowerShell"
+    ]
+  },
+  "formatting": {
+    "indentKind": "space",
+    "width": 2,
+    "insertFinalNewline": true
+  },
+  "security": {
+    "enabledRules": [
+      "no-hardcoded-passwords",
+      "no-plaintext-secrets",
+      "use-secure-parameters",
+      "secure-outputs"
+    ]
+  },
+  "validation": {
+    "provider": "PSRule",
+    "enabledRules": [
+      "Azure.Resource.UseTags",
+      "Azure.Deployment.OutputSecretValue",
+      "Azure.Deployment.AdminUsername",
+      "Azure.Deployment.SecureParameter",
+      "Azure.Deployment.SecureValue",
+      "Azure.Template.DefineParameters",
+      "Azure.Template.ParameterFile",
+      "Azure.Template.UseLocationParameter",
+      "Azure.Template.ValidSecretRef"
+    ]
   }
 }

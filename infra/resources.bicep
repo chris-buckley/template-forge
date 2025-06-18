@@ -766,7 +766,7 @@ module aiHubKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-assign
   name: 'aihub-keyvault-rbac'
   params: {
     resourceId: keyVault.outputs.resourceId
-    principalId: aiFoundryHub.outputs.systemAssignedMIPrincipalId ?? ''
+    principalId: aiFoundryHub.outputs.?systemAssignedMIPrincipalId ?? ''
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       rbacRoles.outputs.keyVaultSecretsOfficer
@@ -781,7 +781,7 @@ module aiHubStorageAccess 'br/public:avm/ptn/authorization/resource-role-assignm
   name: 'aihub-storage-rbac'
   params: {
     resourceId: storageAccount.outputs.resourceId
-    principalId: aiFoundryHub.outputs.systemAssignedMIPrincipalId ?? ''
+    principalId: aiFoundryHub.outputs.?systemAssignedMIPrincipalId ?? ''
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       rbacRoles.outputs.storageBlobDataContributor
@@ -796,7 +796,7 @@ module aiHubAcrAccess 'br/public:avm/ptn/authorization/resource-role-assignment:
   name: 'aihub-acr-rbac'
   params: {
     resourceId: containerRegistry.outputs.resourceId
-    principalId: aiFoundryHub.outputs.systemAssignedMIPrincipalId ?? ''
+    principalId: aiFoundryHub.outputs.?systemAssignedMIPrincipalId ?? ''
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', rbacRoles.outputs.acrPush)
     principalType: 'ServicePrincipal'
     description: 'Allow AI Hub to push/pull custom environment images'
@@ -809,7 +809,7 @@ module aiProjectKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-as
   name: 'aiproject-keyvault-rbac'
   params: {
     resourceId: keyVault.outputs.resourceId
-    principalId: aiFoundryProject.outputs.systemAssignedMIPrincipalId ?? ''
+    principalId: aiFoundryProject.outputs.?systemAssignedMIPrincipalId ?? ''
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       rbacRoles.outputs.keyVaultSecretsUser

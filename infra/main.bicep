@@ -20,9 +20,13 @@ param deploymentDate string = utcNow('yyyy-MM-dd')
 // ========== Variables ==========
 var resourceGroupName = 'rg-${projectName}-${environment}-${location}'
 var defaultTags = {
-  Environment: environment
+  // Core tags required by AVM handbook
+  stack: 'md-decision-maker'
+  env: environment
+  owner: 'Infrastructure Team'
+  costCenter: 'Engineering'
+  // Additional project-specific tags
   Project: 'md-decision-maker'
-  ManagedBy: 'Bicep'
   DeploymentDate: deploymentDate
 }
 var allTags = union(defaultTags, tags)

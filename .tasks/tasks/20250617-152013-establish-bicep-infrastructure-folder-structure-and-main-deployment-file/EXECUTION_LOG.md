@@ -6,7 +6,7 @@
 | Key Metric | Value |
 | :--- | :--- |
 | **Overall Status** | 🟡 **In Progress** |
-| **Task Progress** | ✅ **Completed**: 9 &nbsp;•&nbsp; 📋 **To-Do**: 3 |
+| **Task Progress** | ✅ **Completed**: 10 &nbsp;•&nbsp; 📋 **To-Do**: 2 |
 | **Critical Issues** | ✅ None Identified |
 | **Last Update** | 2025-06-18 |
 
@@ -25,7 +25,7 @@
 | T-07 | Add AI Foundry AVM modules (Hub & Project) | Infrastructure Developer | ✅ Complete | 2025-06-17 | 📄 [SITREP](./SITREPS/07_add_avm_ai_foundry_sitrep.md) |
 | T-08 | Configure RBAC for all managed identities | Infrastructure Developer | ✅ Complete | 2025-06-17 | 📄 [SITREP](./SITREPS/08_configure_rbac_assignments_sitrep.md) |
 | T-09 | Create environment parameter files | Infrastructure Developer | ✅ Complete | 2025-06-18 | 📄 [SITREP](./SITREPS/09_create_environment_parameter_files_sitrep.md) |
-| T-10 | Add `bicepconfig.json` (aliases & PSRule) | Infrastructure Developer | 📋 To-Do | 2025-06-17 | – |
+| T-10 | Add `bicepconfig.json` (aliases & PSRule) | Infrastructure Developer | ✅ Complete | 2025-06-18 | 📄 [SITREP](./SITREPS/10_add_bicepconfig_psrule_sitrep.md) |
 | T-11 | Create comprehensive `README.md` | Infrastructure Developer | 📋 To-Do | 2025-06-17 | – |
 | T-12 | Validate with build/lint/what-if | Infrastructure Developer | 📋 To-Do | 2025-06-17 | – |
 
@@ -44,7 +44,7 @@
 | :---: | :--- | :---: | :--- |
 | 🟡 | In Progress | ✅ | Complete / No Issues |
 | 📋 | To-Do | 🗓️ | Planned |
-| 📄 | SITREP Link | | |
+| 📄 | SITREP Link | ⏳ | Awaiting Sign-off |
 
 <br>
 
@@ -99,3 +99,9 @@
     *   **Completed:** `2025-06-18` - Created `main.prod.bicepparam` and enhanced `main.dev.bicepparam`. Added validation and deployment example scripts. Validated with `bicep build-params`.
     *   **Signed Off:** `2025-06-18` - Environment parameter files successfully created and validated.
     *   **SITREP:** [`09_create_environment_parameter_files_sitrep.md`](./SITREPS/09_create_environment_parameter_files_sitrep.md)
+
+*   **T-10: Add bicepconfig.json**
+    *   **Started:** `2025-06-18`
+    *   **Completed:** `2025-06-18` - Enhanced bicepconfig.json with comprehensive security rules, module restoration settings, and created PSRule configuration files for infrastructure validation. Fixed all linting warnings. Fully compliant with Azure-AVM-Bicep handbook.
+    *   **Signed Off:** `2025-06-18` - bicepconfig.json and PSRule configuration successfully implemented with zero linting warnings.
+    *   **SITREP:** [`10_add_bicepconfig_psrule_sitrep.md`](./SITREPS/10_add_bicepconfig_psrule_sitrep.md)
