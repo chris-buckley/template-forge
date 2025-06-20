@@ -86,11 +86,12 @@ The infrastructure currently deploys:
 | Metric             | Value             |
 | :----------------- | :---------------- |
 | **Overall Status** | ▶️ **In Progress** |
-| ✅ Completed       | 1                 |
+| ✅ Completed       | 2                 |
 | ▶️ In Progress     | 0                 |
-| 📋 To-Do           | 1                 |
+| ⏳ Awaiting Sign-off | 0                 |
+| 📋 To-Do           | 10                |
 | **Critical Issues**| ✅ None           |
-| **Last Update**    | 2025-06-20 07:28        |
+| **Last Update**    | 2025-06-20 08:22        |
 
 ---
 
@@ -99,7 +100,17 @@ The infrastructure currently deploys:
 | #    | Task (brief)                                    | Status   | Depends on | Updated (YYYY-MM-DD HH:MM) | Link |
 | :--- | :---------------------------------------------- | :------- | :--------- | :------------------------- | :--- |
 | T-01 | Gather context, refine, align & scope objective | ✅ Complete | –          | 2025-06-20 07:28            | [📝 log](./T-01_task_execution_report.md) |
-| T-02 | Read T-01s log and update board with specific tasks                | 📋 To-Do | T-01       | 2025-06-20 07:09            | [📝 log](./T-02_task_execution_report.md) |
+| T-02 | Read T-01s log and update board with specific tasks                | ✅ Complete | T-01       | 2025-06-20 08:22            | [📝 log](./T-02_task_execution_report.md) |
+| T-03 | Create monitoring module (Log Analytics + App Insights) | 📋 To-Do | T-02       | –            | [📝 log](./T-03_task_execution_report.md) |
+| T-04 | Create storage module (Storage Account) | 📋 To-Do | T-03       | –            | [📝 log](./T-04_task_execution_report.md) |
+| T-05 | Create key vault module | 📋 To-Do | T-03       | –            | [📝 log](./T-05_task_execution_report.md) |
+| T-06 | Create container registry module (ACR) | 📋 To-Do | T-03       | –            | [📝 log](./T-06_task_execution_report.md) |
+| T-07 | Create AI Foundry module (Hub + Project) | 📋 To-Do | T-04, T-05, T-06       | –            | [📝 log](./T-07_task_execution_report.md) |
+| T-08 | Create app services module (Plan + Apps) | 📋 To-Do | T-03, T-04, T-05, T-06, T-07       | –            | [📝 log](./T-08_task_execution_report.md) |
+| T-09 | Extract and consolidate RBAC assignments module | 📋 To-Do | T-08       | –            | [📝 log](./T-09_task_execution_report.md) |
+| T-10 | Integrate modules in resources.bicep | 📋 To-Do | T-09       | –            | [📝 log](./T-10_task_execution_report.md) |
+| T-11 | Validate and test refactored infrastructure | 📋 To-Do | T-10       | –            | [📝 log](./T-11_task_execution_report.md) |
+| T-12 | Update documentation and deployment guides | 📋 To-Do | T-11       | –            | [📝 log](./T-12_task_execution_report.md) |
 
 
 ---
