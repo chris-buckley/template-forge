@@ -26,12 +26,6 @@ var containerRegistryName = toLower(replace(
 ))
 // Key Vault names must be globally unique and have character limits
 var keyVaultName = '${abbrs.keyVault}-${projectName}-${environment}'
-// Storage Account name must be globally unique, lowercase alphanumeric only, max 24 chars
-var storageAccountName = toLower(replace(
-  substring('${abbrs.storageAccount}${projectName}${environment}${substring(location, 0, 3)}', 0, 24),
-  '-',
-  ''
-))
 // AI Foundry Hub name - following naming convention
 var aiFoundryHubName = '${abbrs.machineLearningWorkspace}-hub-${projectName}-${environment}'
 // AI Foundry Project name - following naming convention
@@ -60,138 +54,15 @@ module monitoring './modules/monitoring.bicep' = {
 }
 
 // ========== Storage Account ==========
-module storageAccount 'br/public:avm/res/storage/storage-account:0.14.3' = {
+module storage './modules/storage.bicep' = {
   name: 'storage-deployment'
   params: {
-    name: storageAccountName
+    namePrefix: '${projectName}${environment}'
     location: location
     tags: tags
-    // Storage account configuration
-    skuName: 'Standard_LRS' // Locally redundant storage for cost optimization
-    kind: 'StorageV2'
-    // Access tier for blob storage
-    accessTier: 'Hot'
-    // Enable HTTPS-only traffic
-    supportsHttpsTrafficOnly: true
-    // Minimum TLS version
-    minimumTlsVersion: 'TLS1_2'
-    // Allow public blob access (will be restricted via container settings)
-    allowBlobPublicAccess: false
-    // Allow shared key access (will migrate to Azure AD later)
-    allowSharedKeyAccess: true
-    // Network access configuration
-    publicNetworkAccess: 'Enabled'
-    networkAcls: {
-      defaultAction: 'Allow' // TODO: Change to 'Deny' after VNet/Private Endpoint setup
-      bypass: 'AzureServices'
-      ipRules: []
-      virtualNetworkRules: []
-    }
-    // Enable soft delete for blob recovery
-    blobServices: {
-      deleteRetentionPolicyEnabled: true
-      deleteRetentionPolicyDays: 7
-      containerDeleteRetentionPolicyEnabled: true
-      containerDeleteRetentionPolicyDays: 7
-      // Create containers for document storage
-      containers: [
-        {
-          name: 'documents'
-          publicAccess: 'None'
-          metadata: {
-            purpose: 'LLM document storage'
-            environment: environment
-          }
-        }
-        {
-          name: 'temp-uploads'
-          publicAccess: 'None'
-          metadata: {
-            purpose: 'Temporary upload storage'
-            environment: environment
-          }
-        }
-      ]
-    }
-    // Lifecycle management for cost optimization
-    managementPolicyRules: [
-      {
-        enabled: true
-        name: 'delete-old-temp-uploads'
-        type: 'Lifecycle'
-        definition: {
-          actions: {
-            baseBlob: {
-              delete: {
-                daysAfterModificationGreaterThan: 7
-              }
-            }
-          }
-          filters: {
-            blobTypes: [
-              'blockBlob'
-            ]
-            prefixMatch: [
-              'temp-uploads/'
-            ]
-          }
-        }
-      }
-      {
-        enabled: true
-        name: 'move-to-cool-tier'
-        type: 'Lifecycle'
-        definition: {
-          actions: {
-            baseBlob: {
-              tierToCool: {
-                daysAfterModificationGreaterThan: 30
-              }
-            }
-          }
-          filters: {
-            blobTypes: [
-              'blockBlob'
-            ]
-            prefixMatch: [
-              'documents/'
-            ]
-          }
-        }
-      }
-    ]
-    // Diagnostic settings
-    diagnosticSettings: [
-      {
-        name: 'storage-diagnostics'
-        workspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
-        storageAccountResourceId: '' // Self-logging not recommended
-        logCategoriesAndGroups: [
-          {
-            category: 'StorageRead'
-            enabled: true
-          }
-          {
-            category: 'StorageWrite'
-            enabled: true
-          }
-          {
-            category: 'StorageDelete'
-            enabled: true
-          }
-        ]
-        metricCategories: [
-          {
-            category: 'AllMetrics'
-            enabled: true
-          }
-        ]
-      }
-    ]
-    // Managed identity for future integrations
-    managedIdentities: {
-      systemAssigned: true
-    }
+    environment: environment
+    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
+    // Use default values for other parameters
   }
 }
 
@@ -378,7 +249,7 @@ module backendApp 'br/public:avm/res/web/site:0.10.0' = {
         }
         {
           name: 'AZURE_STORAGE_CONNECTION_STRING'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.outputs.name};EndpointSuffix=core.windows.net'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storage.outputs.storageAccountName};EndpointSuffix=core.windows.net'
         }
         {
           name: 'AZURE_FOUNDRY_ENDPOINT'
@@ -474,7 +345,7 @@ module aiFoundryHub 'br/public:avm/res/machine-learning-services/workspace:0.10.
       systemAssigned: true
     }
     // Associated resources for the hub
-    associatedStorageAccountResourceId: storageAccount.outputs.resourceId
+    associatedStorageAccountResourceId: storage.outputs.resourceId
     associatedKeyVaultResourceId: keyVault.outputs.resourceId
     associatedApplicationInsightsResourceId: monitoring.outputs.applicationInsightsResourceId
     // Public network access settings
@@ -657,7 +528,7 @@ module backendKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-assi
 module backendStorageAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
   name: 'backend-storage-rbac'
   params: {
-    resourceId: storageAccount.outputs.resourceId
+    resourceId: storage.outputs.resourceId
     principalId: backendApp.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
@@ -743,7 +614,7 @@ module aiHubKeyVaultAccess 'br/public:avm/ptn/authorization/resource-role-assign
 module aiHubStorageAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
   name: 'aihub-storage-rbac'
   params: {
-    resourceId: storageAccount.outputs.resourceId
+    resourceId: storage.outputs.resourceId
     principalId: aiFoundryHub.outputs.?systemAssignedMIPrincipalId ?? ''
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
@@ -842,9 +713,9 @@ output applicationInsightsName string = monitoring.outputs.applicationInsightsNa
 output applicationInsightsConnectionString string = monitoring.outputs.applicationInsightsConnectionString
 output applicationInsightsInstrumentationKey string = monitoring.outputs.applicationInsightsInstrumentationKey
 
-output storageAccountId string = storageAccount.outputs.resourceId
-output storageAccountName string = storageAccount.outputs.name
-output storageAccountPrimaryBlobEndpoint string = storageAccount.outputs.primaryBlobEndpoint
+output storageAccountId string = storage.outputs.storageAccountId
+output storageAccountName string = storage.outputs.storageAccountName
+output storageAccountPrimaryBlobEndpoint string = storage.outputs.primaryBlobEndpoint
 
 output aiFoundryHubId string = aiFoundryHub.outputs.resourceId
 output aiFoundryHubName string = aiFoundryHub.outputs.name

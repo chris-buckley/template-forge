@@ -86,12 +86,12 @@ The infrastructure currently deploys:
 | Metric             | Value             |
 | :----------------- | :---------------- |
 | **Overall Status** | ▶️ **In Progress** |
-| ✅ Completed       | 3                 |
+| ✅ Completed       | 4                 |
 | ▶️ In Progress     | 0                 |
 | ⏳ Awaiting Sign-off | 0                 |
-| 📋 To-Do           | 9                 |
+| 📋 To-Do           | 8                 |
 | **Critical Issues**| ✅ None           |
-| **Last Update**    | 2025-06-20 09:50        |
+| **Last Update**    | 2025-06-20 11:15        |
 
 ---
 
@@ -102,7 +102,7 @@ The infrastructure currently deploys:
 | T-01 | Gather context, refine, align & scope objective | ✅ Complete | –          | 2025-06-20 07:28            | [📝 log](./T-01_task_execution_report.md) |
 | T-02 | Read T-01s log and update board with specific tasks                | ✅ Complete | T-01       | 2025-06-20 08:22            | [📝 log](./T-02_task_execution_report.md) |
 | T-03 | Create monitoring module (Log Analytics + App Insights) | ✅ Complete | T-02       | 2025-06-20 09:50            | [📝 log](./T-03_task_execution_report.md) |
-| T-04 | Create storage module (Storage Account) | 📋 To-Do | T-03       | –            | [📝 log](./T-04_task_execution_report.md) |
+| T-04 | Create storage module (Storage Account) | ✅ Complete | T-03       | 2025-06-20 11:15            | [📝 log](./T-04_task_execution_report.md) |
 | T-05 | Create key vault module | 📋 To-Do | T-03       | –            | [📝 log](./T-05_task_execution_report.md) |
 | T-06 | Create container registry module (ACR) | 📋 To-Do | T-03       | –            | [📝 log](./T-06_task_execution_report.md) |
 | T-07 | Create AI Foundry module (Hub + Project) | 📋 To-Do | T-04, T-05, T-06       | –            | [📝 log](./T-07_task_execution_report.md) |
