@@ -26,10 +26,6 @@ var containerRegistryName = toLower(replace(
 ))
 // Key Vault names must be globally unique and have character limits
 var keyVaultName = '${abbrs.keyVault}-${projectName}-${environment}'
-// Log Analytics workspace name
-var logAnalyticsWorkspaceName = '${abbrs.logAnalyticsWorkspace}-${projectName}-${environment}'
-// Application Insights name
-var applicationInsightsName = '${abbrs.applicationInsights}-${projectName}-${environment}'
 // Storage Account name must be globally unique, lowercase alphanumeric only, max 24 chars
 var storageAccountName = toLower(replace(
   substring('${abbrs.storageAccount}${projectName}${environment}${substring(location, 0, 3)}', 0, 24),
@@ -48,51 +44,18 @@ var appServicePlanSkuCapacity = environment == 'prod' ? 2 : 1
 // Container Registry configuration
 var containerRegistrySkuName = 'Premium' // Premium SKU for vulnerability scanning
 
-// ========== Log Analytics Workspace ==========
-module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0.9.1' = {
-  name: 'log-analytics-deployment'
+// ========== Monitoring Resources (Log Analytics + Application Insights) ==========
+module monitoring './modules/monitoring.bicep' = {
+  name: 'monitoring-deployment'
   params: {
-    name: logAnalyticsWorkspaceName
+    namePrefix: '${projectName}-${environment}'
     location: location
     tags: tags
-    // Set retention based on environment
-    dataRetention: environment == 'prod' ? 90 : 30
-    // Enable ingestion for Application Insights
-    useResourcePermissions: true
-    // Configure daily cap to control costs
-    dailyQuotaGb: environment == 'prod' ? 50 : 10
-    // Enable public network access (will be restricted later with Private Endpoints)
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
-    // Managed identity for future integrations
-    managedIdentities: {
-      systemAssigned: true
-    }
-  }
-}
-
-// ========== Application Insights ==========
-module applicationInsights 'br/public:avm/res/insights/component:0.4.1' = {
-  name: 'app-insights-deployment'
-  params: {
-    name: applicationInsightsName
-    location: location
-    tags: tags
-    // Workspace-based mode for unified observability
-    workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
-    // Application type for proper categorization
-    applicationType: 'web'
-    // Request type for monitoring
-    kind: 'web'
-    // Enable public network access (will be restricted later with Private Endpoints)
-    publicNetworkAccessForIngestion: 'Enabled'
-    publicNetworkAccessForQuery: 'Enabled'
-    // Retention period inherits from Log Analytics workspace
-    retentionInDays: environment == 'prod' ? 90 : 30
-    // Disable legacy Application Insights features
-    disableIpMasking: false
-    // Sampling settings for cost control
-    samplingPercentage: environment == 'prod' ? 100 : 100 // 100% for now, can be adjusted
+    // Environment-specific configurations
+    logAnalyticsRetentionInDays: environment == 'prod' ? 90 : 30
+    logAnalyticsDailyQuotaGb: environment == 'prod' ? 50 : 10
+    applicationInsightsSamplingPercentage: 100 // 100% for now, can be adjusted
+    enablePublicNetworkAccess: true // Will be restricted later with Private Endpoints
   }
 }
 
@@ -201,7 +164,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.14.3' = {
     diagnosticSettings: [
       {
         name: 'storage-diagnostics'
-        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        workspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
         storageAccountResourceId: '' // Self-logging not recommended
         logCategoriesAndGroups: [
           {
@@ -274,7 +237,7 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' =
     diagnosticSettings: [
       {
         name: 'acr-diagnostics'
-        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        workspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
         logCategoriesAndGroups: [
           {
             category: 'ContainerRegistryRepositoryEvents'
@@ -332,7 +295,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.10.2' = {
     diagnosticSettings: [
       {
         name: 'kv-diagnostics'
-        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        workspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
         metricCategories: [
           {
             category: 'AllMetrics'
@@ -395,7 +358,7 @@ module backendApp 'br/public:avm/res/web/site:0.10.0' = {
         }
         {
           name: 'REACT_APP_APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: applicationInsights.outputs.connectionString
+          value: monitoring.outputs.applicationInsightsConnectionString
         }
         {
           name: 'AZURE_KEY_VAULT_URI'
@@ -403,7 +366,7 @@ module backendApp 'br/public:avm/res/web/site:0.10.0' = {
         }
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: applicationInsights.outputs.connectionString
+          value: monitoring.outputs.applicationInsightsConnectionString
         }
         {
           name: 'OTEL_RESOURCE_ATTRIBUTES'
@@ -513,7 +476,7 @@ module aiFoundryHub 'br/public:avm/res/machine-learning-services/workspace:0.10.
     // Associated resources for the hub
     associatedStorageAccountResourceId: storageAccount.outputs.resourceId
     associatedKeyVaultResourceId: keyVault.outputs.resourceId
-    associatedApplicationInsightsResourceId: applicationInsights.outputs.resourceId
+    associatedApplicationInsightsResourceId: monitoring.outputs.applicationInsightsResourceId
     // Public network access settings
     publicNetworkAccess: 'Enabled' // TODO: Restrict after VNet/Private Endpoint setup
     // Workspace settings
@@ -526,7 +489,7 @@ module aiFoundryHub 'br/public:avm/res/machine-learning-services/workspace:0.10.
     diagnosticSettings: [
       {
         name: 'ai-hub-diagnostics'
-        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        workspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
         logCategoriesAndGroups: [
           {
             category: 'AmlComputeClusterEvent'
@@ -610,7 +573,7 @@ module aiFoundryProject 'br/public:avm/res/machine-learning-services/workspace:0
     diagnosticSettings: [
       {
         name: 'ai-project-diagnostics'
-        workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+        workspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
         logCategoriesAndGroups: [
           {
             category: 'AmlComputeClusterEvent'
@@ -721,7 +684,7 @@ module backendAcrAccess 'br/public:avm/ptn/authorization/resource-role-assignmen
 module backendAppInsightsAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
   name: 'backend-appinsights-rbac'
   params: {
-    resourceId: applicationInsights.outputs.resourceId
+    resourceId: monitoring.outputs.applicationInsightsResourceId
     principalId: backendApp.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
@@ -749,7 +712,7 @@ module frontendAcrAccess 'br/public:avm/ptn/authorization/resource-role-assignme
 module frontendAppInsightsAccess 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
   name: 'frontend-appinsights-rbac'
   params: {
-    resourceId: applicationInsights.outputs.resourceId
+    resourceId: monitoring.outputs.applicationInsightsResourceId
     principalId: frontendApp.outputs.systemAssignedMIPrincipalId
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
@@ -871,13 +834,13 @@ output keyVaultId string = keyVault.outputs.resourceId
 output keyVaultName string = keyVault.outputs.name
 output keyVaultUri string = keyVault.outputs.uri
 
-output logAnalyticsWorkspaceId string = logAnalyticsWorkspace.outputs.resourceId
-output logAnalyticsWorkspaceName string = logAnalyticsWorkspace.outputs.name
+output logAnalyticsWorkspaceId string = monitoring.outputs.logAnalyticsWorkspaceResourceId
+output logAnalyticsWorkspaceName string = monitoring.outputs.logAnalyticsWorkspaceName
 
-output applicationInsightsId string = applicationInsights.outputs.resourceId
-output applicationInsightsName string = applicationInsights.outputs.name
-output applicationInsightsConnectionString string = applicationInsights.outputs.connectionString
-output applicationInsightsInstrumentationKey string = applicationInsights.outputs.instrumentationKey
+output applicationInsightsId string = monitoring.outputs.applicationInsightsResourceId
+output applicationInsightsName string = monitoring.outputs.applicationInsightsName
+output applicationInsightsConnectionString string = monitoring.outputs.applicationInsightsConnectionString
+output applicationInsightsInstrumentationKey string = monitoring.outputs.applicationInsightsInstrumentationKey
 
 output storageAccountId string = storageAccount.outputs.resourceId
 output storageAccountName string = storageAccount.outputs.name
