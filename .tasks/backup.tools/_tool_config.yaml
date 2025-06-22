@@ -1,0 +1,25 @@
+# .tasks/.tools/_tool_config.yaml
+
+# Relative path *from* the directory that contains create_task.sh
+root_directory_relative_from_this_directory: ../..
+
+# Cxt initial directory releative path *from* the project root. (Holds the state of the tasks)
+ctx_directory_relative_from_root: .tasks/.tools/ctx_init
+
+# State file releative path *from* the project root.
+state_file_relative_from_root: .tasks/state.json
+
+# CI directory releative path *from* the project root.
+ci_directory_relative_from_root: .tasks/.tools/ci
+
+# Relative path *from* the project root to the directory that will hold task folders
+task_directory_relative_from_root: .tasks/tasks
+
+# Backend directory releative path *from* the project root.
+backend_directory_relative_from_root: backend
+
+# Frontend directory releative path *from* the project root.
+frontend_directory_relative_from_root: frontend
+
+# Infra directory releative path *from* the project root.
+infra_directory_relative_from_root: infra

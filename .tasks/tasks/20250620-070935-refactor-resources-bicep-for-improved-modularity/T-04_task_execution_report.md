@@ -402,3 +402,9 @@ Create a modular storage module that:
 *   **Comments:**
     > Successfully extracted storage account configuration into a dedicated module.
 
+### Sign‑off
+*   **Result:** `Approved`
+*   **Commit:** `feat(infra): create storage module for Azure Storage Account`
+*   **Comments:**
+    > Successfully extracted storage account configuration into a dedicated module.
+
